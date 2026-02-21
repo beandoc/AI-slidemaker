@@ -42,28 +42,43 @@ h1, h2, .h-hero {
     background: rgba(255,255,255,0.03);
 }
 
-/* 4. MESH GRADIENT CORE (V15 Refined) */
+/* 4. MESH GRADIENT CORE (V27 Atmospheric) */
 .mesh-bg {
     position: fixed; inset: 0; z-index: -1;
     background: 
-        radial-gradient(at 0% 0%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+        radial-gradient(at 0% 0%, var(--accent-soft) 0%, transparent 50%),
         radial-gradient(at 100% 0%, rgba(129, 140, 248, 0.05) 0%, transparent 50%),
         radial-gradient(at 50% 100%, rgba(192, 132, 252, 0.05) 0%, transparent 50%),
-        #0a0a0f;
+        var(--bg);
 }
 
-/* THE STORYTELLING GRID */
-#presentation { 
-    height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; 
-    scroll-behavior: smooth;
-    scrollbar-width: none; -ms-overflow-style: none;
+/* 4.1 NOISE TEXTURE (The Soul) */
+body::before {
+    content: ""; position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.03; mix-blend-mode: overlay;
 }
-#presentation::-webkit-scrollbar { display: none; }
+
+/* THE STORYTELLING FLOW (Canva Doc Mode) */
+#presentation { 
+    width: 100%;
+    overflow-x: hidden;
+    background: var(--bg);
+    position: relative;
+}
 
 .slide { 
-    height: 100vh; width: 100vw; scroll-snap-align: start; 
-    display: flex; align-items: center; position: relative;
-    overflow: hidden; padding: 10vh 0;
+    min-height: 90vh; /* Epic but flexible */
+    width: 100vw; 
+    display: flex; flex-direction: column; justify-content: center;
+    position: relative;
+    overflow: hidden; padding: 20vh 0; /* Massively increased breathing room */
+}
+
+/* 6. LAYERED STICKY DEPTH */
+.slide--hero, .slide--lens, .slide--horizon {
+    height: 100vh;
+    scroll-snap-align: center; /* Subtle landing only for high-impact zones */
 }
 
 /* PROGRESS & NAVIGATION */
@@ -97,19 +112,24 @@ h2 { font-family: var(--f-head); font-size: clamp(2.5rem, 6vw, 4.5rem); line-hei
 .wide-wrap { 
     width: 100%; 
     max-width: 1400px; 
-    padding: 0 15vw; /* Forced breathing room */
+    padding: 0 12vw; /* Generous breathing room */
     position: relative; 
     z-index: 10; 
+    margin: 0 auto;
 }
 
 /* GLASSMORPHISM DNA */
-.glass-panel {
-    background: rgba(255,255,255,0.02);
-    backdrop-filter: blur(var(--motion-blur));
-    border: 1px solid rgba(255,255,255,0.08);
-    padding: 4.5rem;
-    border-radius: 3rem;
-    box-shadow: 0 50px 100px rgba(0,0,0,0.2);
+.glass-panel, .bento-card, .teaser-card {
+    background: rgba(255,255,255,0.01) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.1) !important;
+    transition: all 0.6s var(--motion-easing) !important;
+}
+.glass-panel:hover, .bento-card:hover, .teaser-card:hover {
+    border-color: var(--accent) !important;
+    background: rgba(255,255,255,0.03) !important;
+    transform: translateY(-8px) scale(1.01) !important;
 }
 
 /* BACKGROUNDS */

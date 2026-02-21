@@ -5,15 +5,28 @@ export function renderTitle(s, id, idx) {
     const img = pick('hero', idx);
     const dateStr = s.date || new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
     const owner = s.owner ? `<div class="hero-meta reveal" data-d="400"><span>BY ${esc(s.owner).toUpperCase()}</span></div>` : '';
+
+    // SAFETY SCISSORS: Programmatically split headings if AI fails the 5-word prompt rule
+    const headWords = (s.heading || '').split(' ');
+    const displayHead = headWords.slice(0, 4).join(' '); // Force punchy head
+    const displaySub = headWords.length > 4 ? headWords.slice(4).join(' ') + ' — ' + (s.subtitle || '') : (s.subtitle || '');
+
     return `<section class="slide slide--hero" id="${id}" data-label="Entry">
         <div class="bg-wrap"><div class="bg-img ken-burns" style="background-image:url('${img}')"></div></div>
         <div class="overlay"></div>
-        <div class="vertical-title">${esc((s.heading || 'STUDIO').split(' ').slice(0, 2).join(' ').toUpperCase())}</div>
-        <div class="vertical-tag">STUDIO EDITION V.24</div>
-        <div class="content hero-content">
-            <span class="badge reveal" data-d="0">EDITION I | ${dateStr}</span>
-            <h1 class="reveal" data-d="150">${esc(s.heading)}</h1>
-            <p class="subtitle reveal" data-d="300">${esc(s.subtitle || '')}</p>
+        <div class="k-blob k-blob-0" style="background: radial-gradient(circle, var(--accent) 0%, transparent 70%); opacity: 0.15; position: absolute; top: 10%; left: 10%; width: 600px; height: 600px; filter: blur(100px); z-index: 1;"></div>
+        
+        <div class="vertical-title">${esc(displayHead.split(' ')[0].toUpperCase())}</div>
+        <div class="vertical-tag">STUDIO EDITION // V.27</div>
+        <div class="vertical-tag right">PROTOTYPE ARCHIVE // 2026</div>
+
+        <div class="content hero-content" style="z-index: 10;">
+            <div class="reveal" data-d="0" style="margin-bottom: 2.5rem;">
+                <span style="font-size: 0.7rem; letter-spacing: 0.5em; opacity: 0.5; border: 1px solid rgba(255,255,255,0.2); padding: 0.5rem 1.5rem; border-radius: 100px;">PRM // DOCUMENT IDENTITY // ${dateStr}</span>
+            </div>
+            <h1 class="reveal" data-d="150" style="text-shadow: 0 10px 30px rgba(0,0,0,0.5);">${esc(displayHead)}</h1>
+            <div class="reveal" data-d="250" style="width: 80px; height: 3px; background: var(--accent); margin: 3rem auto; border-radius: 2px;"></div>
+            <p class="subtitle reveal" data-d="350" style="font-weight: 300; opacity: 0.7; max-width: 800px; margin: 0 auto; font-size: 1.8rem; line-height: 1.4;">${esc(displaySub)}</p>
             ${owner}
         </div>
     </section>`;
@@ -41,13 +54,19 @@ export function renderSplit(s, id, idx) {
 }
 
 export function renderContent(s, id) {
+    const headWords = (s.heading || '').split(' ');
+    const displayHeadBold = headWords[0];
+    const displayHeadRest = headWords.slice(1, 4).join(' ');
     const bullets = (s.bullets || [s.text || '']).map((b, i) => `<li class="reveal" data-d="${200 + i * 100}"><span>${esc(b)}</span></li>`).join('');
-    const sub = s.subtitle || s.subtext ? `<p class="subtitle reveal" data-d="150">${esc(s.subtitle || s.subtext)}</p>` : '';
+    const subText = headWords.length > 4 ? headWords.slice(4).join(' ') + ' — ' + (s.subtitle || s.subtext || '') : (s.subtitle || s.subtext || '');
+    const sub = subText ? `<p class="subtitle reveal" data-d="150" style="margin-top: 1.5rem; opacity: 0.6; font-size: 1.6rem;">${esc(subText)}</p>` : '';
+
     return `<section class="slide slide--content" id="${id}" data-label="Focus">
         <div class="wide-wrap">
-            <h2 class="mixed-weight reveal" data-d="0" style="font-size: 5rem;"><strong>${esc(s.heading.split(' ')[0])}</strong> ${esc(s.heading.split(' ').slice(1).join(' '))}</h2>
+            <h2 class="mixed-weight reveal" data-d="0" style="font-size: 6rem; letter-spacing: -0.06em;"><strong>${esc(displayHeadBold)}</strong> ${esc(displayHeadRest)}</h2>
+            <div class="reveal" data-d="100" style="width: 120px; height: 1px; background: var(--fg); opacity: 0.2; margin: 2rem 0;"></div>
             ${sub}
-            <ul class="editorial-list columns-2 reveal" data-d="300" style="margin-top: 2rem;">${bullets}</ul>
+            <ul class="editorial-list columns-2 reveal" data-d="300" style="margin-top: 4rem;">${bullets}</ul>
         </div>
     </section>`;
 }
@@ -136,7 +155,7 @@ export function renderBleed(s, id) {
 
 export function renderMinimal(s, id) {
     return `<section class="slide slide--minimal" id="${id}" data-label="Minimal">
-        <div class="wide-wrap" style="display: flex; flex-direction: column; justify-content: flex-end; height: 100vh; padding: 10vw;"><h2 class="reveal" style="font-size: 4rem; line-height: 1;">${esc(s.heading)}</h2><p class="reveal subtitle" data-d="200">${esc(s.subtext || '')}</p></div>
+        <div class="wide-wrap" style="display: flex; flex-direction: column; justify-content: flex-end; min-height: 60vh; padding: 5vw;"><h2 class="reveal" style="font-size: 4rem; line-height: 1;">${esc(s.heading)}</h2><p class="reveal subtitle" data-d="200">${esc(s.subtext || '')}</p></div>
     </section>`;
 }
 
@@ -221,11 +240,37 @@ export function renderColumns(s, id) {
 }
 
 export function renderBento(s, id) {
-    const cards = (s.cards || []).map((c, i) => `<div class="bento-card ${c.size || ''} reveal" data-d="${i * 100}"><div><span class="label">${esc(c.label || 'FEATURE')}</span><h3>${esc(c.title)}</h3></div><p>${esc(c.text)}</p></div>`).join('');
+    const cards = (s.cards || []).map((c, i) => `
+        <div class="bento-card ${c.size || ''} reveal" data-d="${i * 100}">
+            <div style="position: relative; z-index: 10;">
+                <span class="label" style="font-size: 0.65rem; margin-bottom: 1.5rem; opacity: 0.8; color: var(--accent); border-bottom: 1px solid var(--accent-soft); width: fit-content; padding-bottom: 0.2rem;">${esc(c.label || 'FEATURE')}</span>
+                <h3 style="font-family: var(--f-head); font-size: 2.2rem; margin-bottom: 1.5rem; letter-spacing: -0.03em;">${esc(c.title)}</h3>
+                <p style="font-family: var(--f-body); font-weight: 300; opacity: 0.7; line-height: 1.5; font-size: 1.1rem;">${esc(c.text)}</p>
+            </div>
+            <div style="position: absolute; inset: 0; background: radial-gradient(circle at top right, var(--accent-soft), transparent); opacity: 0.05; pointer-events: none;"></div>
+        </div>`).join('');
     return `<section class="slide slide--bento" id="${id}" data-label="Architecture"><div class="wide-wrap"><div class="bento-grid">${cards}</div></div></section>`;
 }
 
 export function renderEditorial(s, id) {
-    const sub = s.subtitle || s.subtext ? `<p class="subtitle reveal" data-d="300">${esc(s.subtitle || s.subtext)}</p>` : '';
-    return `<section class="slide slide--editorial" id="${id}" data-label="Divider"><div class="wide-wrap"><div class="editorial-header reveal"><span class="editorial-label">${esc(s.leftLabel || 'SECTION')}</span><span class="editorial-label">${esc(s.rightLabel || '01')}</span></div><div class="editorial-body reveal" data-d="200"><h1 class="mixed-weight"><strong>${esc(s.heading.split(' ')[0])}</strong> ${esc(s.heading.split(' ').slice(1).join(' '))}</h1>${sub}</div></div></section>`;
+    const headWords = (s.heading || '').split(' ');
+    const displayHeadBold = headWords[0];
+    const displayHeadRest = headWords.slice(1, 4).join(' ');
+    const subText = headWords.length > 4 ? headWords.slice(4).join(' ') + ' — ' + (s.subtitle || s.subtext || '') : (s.subtitle || s.subtext || '');
+    const sub = subText ? `<p class="subtitle reveal" data-d="300">${esc(subText)}</p>` : '';
+    const bigNum = (s.rightLabel || '01').padStart(2, '0');
+
+    return `<section class="slide slide--editorial" id="${id}" data-label="Divider">
+        <div class="bleed-element" style="right: 5vw; top: 10%;">${bigNum}</div>
+        <div class="wide-wrap">
+            <div class="editorial-header reveal">
+                <span class="editorial-label">${esc(s.leftLabel || 'TAC-OPS')}</span>
+                <span class="editorial-label">// MODULE ${bigNum}</span>
+            </div>
+            <div class="editorial-body reveal" data-d="200" style="border-left: 4px solid var(--accent); padding-left: 4rem; margin-top: 4rem;">
+                <h1 class="mixed-weight" style="font-size: 8rem;"><strong>${esc(displayHeadBold)}</strong> ${esc(displayHeadRest)}</h1>
+                ${sub}
+            </div>
+        </div>
+    </section>`;
 }

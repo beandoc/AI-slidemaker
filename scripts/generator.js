@@ -137,12 +137,6 @@ function renderSlide(s, idx, design) {
     }
 
     // High-End Wrapper (Global DNA)
-    const isTitle = s.type === 'title';
-    const counter = isTitle ? '' : `<div class="sect-counter">0${idx + 1} // STUDIO</div>`;
-
-    return `
-        <div class="slide-container" style="position:relative;">
-            ${counter}
-            ${html}
-        </div>`;
+    // Removed .slide-container to allow for fluid Doc Flow
+    return html;
 }
