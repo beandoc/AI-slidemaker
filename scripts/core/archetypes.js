@@ -19,9 +19,11 @@ export function renderTitle(s, id, idx) {
 
 export function renderContent(s, id) {
     const bullets = (s.bullets || [s.text || '']).map((b, i) => `<li class="reveal" data-d="${200 + i * 100}"><span>${esc(b)}</span></li>`).join('');
+    const sub = s.subtitle || s.subtext ? `<p class="subtitle reveal" data-d="150">${esc(s.subtitle || s.subtext)}</p>` : '';
     return `<section class="slide slide--content" id="${id}" data-label="Focus">
         <div class="wide-wrap">
             <h2 class="mixed-weight reveal" data-d="0" style="font-size: 5rem;"><strong>${esc(s.heading.split(' ')[0])}</strong> ${esc(s.heading.split(' ').slice(1).join(' '))}</h2>
+            ${sub}
             <ul class="editorial-list columns-2 reveal" data-d="300" style="margin-top: 2rem;">${bullets}</ul>
         </div>
     </section>`;
@@ -201,5 +203,6 @@ export function renderBento(s, id) {
 }
 
 export function renderEditorial(s, id) {
-    return `<section class="slide slide--editorial" id="${id}" data-label="Divider"><div class="wide-wrap"><div class="editorial-header reveal"><span class="editorial-label">${esc(s.leftLabel || 'SECTION')}</span><span class="editorial-label">${esc(s.rightLabel || '01')}</span></div><div class="editorial-body reveal" data-d="200"><h1 class="mixed-weight"><strong>${esc(s.heading.split(' ')[0])}</strong> ${esc(s.heading.split(' ').slice(1).join(' '))}</h1></div></div></section>`;
+    const sub = s.subtitle || s.subtext ? `<p class="subtitle reveal" data-d="300">${esc(s.subtitle || s.subtext)}</p>` : '';
+    return `<section class="slide slide--editorial" id="${id}" data-label="Divider"><div class="wide-wrap"><div class="editorial-header reveal"><span class="editorial-label">${esc(s.leftLabel || 'SECTION')}</span><span class="editorial-label">${esc(s.rightLabel || '01')}</span></div><div class="editorial-body reveal" data-d="200"><h1 class="mixed-weight"><strong>${esc(s.heading.split(' ')[0])}</strong> ${esc(s.heading.split(' ').slice(1).join(' '))}</h1>${sub}</div></div></section>`;
 }

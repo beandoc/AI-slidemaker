@@ -80,6 +80,15 @@ h1, h2, .h-hero {
 .label { font-family: var(--f-head); font-size: 0.8rem; letter-spacing: 0.4em; color: var(--accent); text-transform: uppercase; margin-bottom: 2rem; display: block; }
 h1 { font-family: var(--f-head); font-size: clamp(3.5rem, 10vw, 8rem); line-height: 0.95; font-weight: 900; letter-spacing: -0.04em; }
 h2 { font-family: var(--f-head); font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 1.1; margin-bottom: 2rem; font-weight: 800; }
+.subtitle, .subtext { 
+    font-family: var(--f-body); 
+    font-size: 1.4rem; 
+    font-weight: 200; 
+    opacity: 0.6; 
+    max-width: 600px; 
+    letter-spacing: 0.02em;
+    margin-top: -1.5rem; /* Tighter vertical grouping */
+}
 .wide-wrap { 
     width: 100%; 
     max-width: 1400px; 
