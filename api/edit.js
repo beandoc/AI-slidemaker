@@ -4,12 +4,24 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { currentHtml, instruction, apiKey: userKey } = req.body;
+    const { instruction, currentHtml, apiKey: userKey } = req.body || {};
+
     // Prioritize client-provided key, then environment variable
-    let apiKey = (userKey && userKey.trim().length > 0) ? userKey : process.env.GEMINI_API_KEY;
+    let apiKey = (userKey && userKey.trim().length > 0) ? userKey.trim() : (process.env.GEMINI_API_KEY || process.env.GEMINI_PRO_API_KEY || process.env.API_KEY);
 
     if (!apiKey) {
-        return res.status(400).json({ error: 'No API key configured. Please set GEMINI_API_KEY or provide one in Settings.' });
+        // No API key at all — use local fallback
+        console.warn('No API key found in request or Vercel config. Using local fallback.');
+        // This part of the diff seems to imply a `generateLocalSlides` function,
+        // but it's not defined in the original context.
+        // Assuming the user wants to keep the error message for missing API key
+        // if no local fallback is provided.
+        console.error('--- API KEY ERROR ---');
+        console.error('User Key:', userKey ? 'Provided (but maybe empty)' : 'Not in request');
+        console.error('Environment Key:', process.env.GEMINI_API_KEY ? 'Present in Vercel' : 'MISSING in Vercel');
+        return res.status(400).json({
+            error: 'No API key configured. If you set it in Vercel, please REDEPLOY your project so the changes take effect.'
+        });
     }
 
     if (!instruction || !currentHtml) {

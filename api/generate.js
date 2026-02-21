@@ -4,12 +4,14 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { prompt, apiKey: userKey } = req.body;
+    const { prompt, apiKey: userKey } = req.body || {};
+
     // Prioritize client-provided key, then environment variable
-    let apiKey = (userKey && userKey.trim().length > 0) ? userKey : process.env.GEMINI_API_KEY;
+    let apiKey = (userKey && userKey.trim().length > 0) ? userKey.trim() : (process.env.GEMINI_API_KEY || process.env.GEMINI_PRO_API_KEY || process.env.API_KEY);
 
     if (!apiKey) {
         // No API key at all — use local fallback
+        console.warn('No API key found in request or Vercel config. Using local fallback.');
         return res.status(200).json(generateLocalSlides(prompt));
     }
 
@@ -42,6 +44,8 @@ Output JSON:
         'gemini-1.5-flash-8b'
     ];
 
+    let lastError = 'All AI models exhausted.';
+
     for (const model of models) {
         try {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -52,19 +56,22 @@ Output JSON:
                 body: JSON.stringify({
                     contents: [{
                         parts: [{ text: `${systemPrompt}\n\nUser Topic: ${prompt}` }]
-                    }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.1
+                    }
                 })
             });
 
-            // If rate limited (429), try next model
-            if (response.status === 429) {
-                console.log(`Model ${model} rate limited, trying next...`);
-                continue;
+            if (response.status === 401 || response.status === 403) {
+                const err = await response.json();
+                console.error('API Key rejected:', err.error?.message);
+                lastError = `API Key rejected: ${err.error?.message || 'Unauthorized'}`;
+                break;
             }
 
-            // If model not found (404), try next model
-            if (response.status === 404) {
-                console.log(`Model ${model} not found, trying next...`);
+            if (response.status === 429) {
+                console.log(`Model ${model} rate limited...`);
                 continue;
             }
 
@@ -75,9 +82,13 @@ Output JSON:
             }
 
             const data = await response.json();
-            let text = data.candidates[0].content.parts[0].text;
 
-            // Strip markdown wrappers if AI adds them
+            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                console.log(`Model ${model} returned empty/blocked response`);
+                continue;
+            }
+
+            let text = data.candidates[0].content.parts[0].text;
             text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
 
             return res.status(200).json(JSON.parse(text));
@@ -89,115 +100,64 @@ Output JSON:
     }
 
     // All API models failed — use local fallback
-    console.log('All API models exhausted, using local fallback');
-    return res.status(200).json(generateLocalSlides(prompt));
+    console.error(`AI Generation Failed: ${lastError}`);
+    return res.status(200).json(generateLocalSlides(prompt, lastError));
 }
 
 // -----------------------------------------------
 // LOCAL FALLBACK: Generates slides without any API
 // -----------------------------------------------
-function generateLocalSlides(prompt) {
-    const topic = prompt.trim();
-
-    // Try to extract bullet points from pasted text
-    const lines = topic.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-
-    // If user pasted multiple lines, treat them as content
-    if (lines.length > 3) {
-        return generateFromLines(lines);
-    }
-
-    // Otherwise, generate a template from the topic
-    return generateFromTopic(topic);
-}
-
-function generateFromLines(lines) {
-    const title = lines[0].replace(/^[#\-*•]\s*/, '');
-    const slides = [
-        {
-            type: 'title',
-            heading: title,
-            subtitle: lines[1] ? lines[1].replace(/^[#\-*•]\s*/, '') : 'A presentation',
-            notes: ''
-        }
-    ];
-
-    // Group remaining lines into slides of 4-5 bullets each
-    const contentLines = lines.slice(2).map(l => l.replace(/^[\-*•\d.]\s*/, ''));
-
-    for (let i = 0; i < contentLines.length; i += 4) {
-        const chunk = contentLines.slice(i, i + 4);
-        const slideNum = Math.floor(i / 4) + 1;
-
-        slides.push({
-            type: 'content',
-            heading: `Key Points — Part ${slideNum}`,
-            bullets: chunk,
-            notes: ''
-        });
-    }
-
-    // Add closing slide
-    slides.push({
-        type: 'cta',
-        heading: 'Thank You',
-        action: 'Questions & Discussion',
-        notes: ''
-    });
+function generateLocalSlides(prompt, errorMsg = '') {
+    const topic = (prompt || "My Presentation").trim();
 
     return {
-        title: title,
-        slides: slides
-    };
-}
-
-function generateFromTopic(topic) {
-    return {
-        title: topic || 'My Presentation',
+        title: topic,
+        error: errorMsg,
         slides: [
             {
                 type: 'title',
-                heading: topic || 'My Presentation',
-                subtitle: 'An overview of the key concepts',
-                notes: ''
+                heading: topic,
+                subtitle: 'The Strategic Overview & Core Insights',
+                notes: 'Generated locally while AI key is being configured.'
             },
             {
                 type: 'content',
-                heading: 'Introduction',
+                heading: 'The Core Challenge',
                 bullets: [
-                    `What is ${topic}?`,
-                    'Why it matters today',
-                    'Key challenges and opportunities',
-                    'What we will cover'
-                ],
-                notes: ''
-            },
-            {
-                type: 'content',
-                heading: 'Core Concepts',
-                bullets: [
-                    'Foundational principles',
-                    'How it works in practice',
-                    'Real-world applications',
-                    'Common misconceptions'
-                ],
-                notes: ''
+                    'Identifying the primary friction points and barriers',
+                    'Analyzing current market trends and shifts',
+                    'Understanding user needs and evolving behaviors',
+                    'Setting a clear vision for sustainable growth'
+                ]
             },
             {
                 type: 'stats',
-                heading: 'Impact & Metrics',
+                heading: 'Current Momentum',
                 stats: [
-                    { number: '3x', label: 'Efficiency Gain' },
-                    { number: '85%', label: 'Adoption Rate' },
-                    { number: '10M+', label: 'Users Worldwide' }
-                ],
-                notes: ''
+                    { number: '124%', label: 'Efficiency Gain' },
+                    { number: '2.4M', label: 'Active Users' },
+                    { number: 'Top 10', label: 'Market Rank' }
+                ]
+            },
+            {
+                type: 'content',
+                heading: 'Proposed Solution',
+                bullets: [
+                    'Seamless integration of advanced technologies',
+                    'Zero-dependency architecture for maximum speed',
+                    'Iterative design cycles for rapid deployment',
+                    'Scalable framework built for the next decade'
+                ]
+            },
+            {
+                type: 'quote',
+                quote: "The best way to predict the future is to design it yourself, with precision and vision.",
+                attribution: "Strategic Lead"
             },
             {
                 type: 'cta',
-                heading: 'Next Steps',
-                action: 'Get started today — explore, learn, and build.',
-                notes: ''
+                heading: 'Ready to Scale',
+                action: 'Start the Implementation Phase'
             }
         ]
     };

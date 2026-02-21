@@ -900,13 +900,18 @@
                 const currentIndex = previewFrame.contentWindow.slideshow?.current || 0;
                 const targetNode = slides[currentIndex] || slides[0];
 
+                // Ensure we capture the computed styles within the iframe
                 const dataUrl = await domtoimage.toSvg(targetNode, {
                     width: 1920,
                     height: 1080,
+                    bgcolor: '#ffffff',
+                    quality: 1.0,
+                    cacheBust: true,
                     style: {
                         transform: 'none',
                         left: '0',
-                        top: '0'
+                        top: '0',
+                        visibility: 'visible'
                     }
                 });
 
