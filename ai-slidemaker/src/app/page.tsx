@@ -102,10 +102,12 @@ export default function AppHome() {
     const reader = new FileReader();
     reader.onload = (event) => {
       const url = event.target?.result as string;
+      const isIcon = file.type.includes('svg') || file.size < 50000; // Small files or SVGs are usually icons
+
       addAsset({
         id: `asset_${Date.now()}`,
         name: file.name,
-        type: file.type.includes('svg') ? 'icon' : 'logo',
+        type: isIcon ? 'icon' : 'image',
         url: url
       });
     };
@@ -446,33 +448,52 @@ export default function AppHome() {
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Brand Logos</h3>
+              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Library Assets</h3>
               <label className="cursor-pointer text-sky-400 hover:text-sky-300 transition-colors">
                 <Upload size={14} />
                 <input type="file" className="hidden" accept="image/*" onChange={handleUpload} />
               </label>
             </div>
-            <div className="grid grid-cols-4 gap-2">
-              {presentation.assets?.map(asset => (
-                <button
-                  key={asset.id}
-                  onClick={() => updateSlideContent(activeSlideId!, { customIconUrl: asset.url })}
-                  className="aspect-square rounded-lg bg-white/5 border border-white/5 hover:border-sky-500/40 p-2 transition-all group overflow-hidden relative"
-                >
-                  <Image
-                    src={asset.url}
-                    fill
-                    unoptimized={asset.url.startsWith('data:')}
-                    className="object-contain p-2"
-                    alt="Brand Logo"
-                  />
-                </button>
-              ))}
-              {(!presentation.assets || presentation.assets.length === 0) && (
-                <div className="col-span-4 py-6 text-[9px] text-slate-600 text-center uppercase tracking-tighter italic border border-dashed border-white/5 rounded-xl bg-white/[0.01]">
-                  No logos uploaded
-                </div>
-              )}
+
+            {/* LOGOS & ICONS SECTION */}
+            <div className="space-y-2">
+              <div className="text-[9px] text-slate-600 font-bold uppercase tracking-wider pl-1">Logos & Icons</div>
+              <div className="grid grid-cols-4 gap-2">
+                {presentation.assets?.filter(a => a.type !== 'image').map(asset => (
+                  <button
+                    key={asset.id}
+                    onClick={() => updateSlideContent(activeSlideId!, { customIconUrl: asset.url })}
+                    className="aspect-square rounded-lg bg-white/5 border border-white/5 hover:border-sky-500/40 p-2 transition-all group overflow-hidden relative"
+                    title="Set as slide icon"
+                  >
+                    <Image src={asset.url} fill unoptimized={asset.url.startsWith('data:')} className="object-contain p-2" alt="Icon" />
+                  </button>
+                ))}
+                {(!presentation.assets || presentation.assets.filter(a => a.type !== 'image').length === 0) && (
+                  <div className="col-span-4 py-2 text-[8px] text-slate-700 text-center uppercase">Empty</div>
+                )}
+              </div>
+            </div>
+
+            {/* FULL IMAGES SECTION */}
+            <div className="space-y-2 pt-2">
+              <div className="text-[9px] text-slate-600 font-bold uppercase tracking-wider pl-1">Photos & Graphics</div>
+              <div className="grid grid-cols-2 gap-2">
+                {presentation.assets?.filter(a => a.type === 'image').map(asset => (
+                  <button
+                    key={asset.id}
+                    onClick={() => updateSlideContent(activeSlideId!, { imagePath: asset.url })}
+                    className="aspect-video rounded-lg bg-white/5 border border-white/5 hover:border-sky-500/40 transition-all group overflow-hidden relative"
+                    title="Set as main image"
+                  >
+                    <Image src={asset.url} fill unoptimized={asset.url.startsWith('data:')} className="object-cover" alt="Graphic" />
+                    <div className="absolute inset-0 bg-sky-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ))}
+                {(!presentation.assets || presentation.assets.filter(a => a.type === 'image').length === 0) && (
+                  <div className="col-span-2 py-4 text-[8px] text-slate-700 text-center uppercase border border-dashed border-white/5 rounded-lg">No graphics</div>
+                )}
+              </div>
             </div>
           </div>
 
