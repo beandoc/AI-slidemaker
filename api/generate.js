@@ -11,16 +11,16 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Server configuration error: GEMINI_API_KEY is missing.' });
     }
 
-    const systemPrompt = `
-You are an expert presentation designer. Generate a slide-by-slide outline for the user's topic or text.
+    const systemPrompt = `You are an expert presentation designer. Generate a slide-by-slide outline for the user's topic or text.
 
 Rules:
 - Each slide must fit in one viewport (enforce content density limits).
 - Title slides: 1 heading + 1 subtitle max.
 - Content slides: 1 heading + 4-6 bullets, max 2 lines each.
 - End with a strong closing/CTA slide.
+- Return ONLY valid JSON, no markdown, no backticks.
 
-Output format STRICTLY AS JSON:
+Output JSON:
 {
   "title": "Presentation Title",
   "slides": [
@@ -30,21 +30,19 @@ Output format STRICTLY AS JSON:
     { "type": "stats", "heading": "Metrics", "stats": [{"number": "10x", "label": "Growth"}] },
     { "type": "cta", "heading": "Join Us", "action": "Sign up today" }
   ]
-}
-`;
+}`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
+    // Using gemini-2.0-flash — the current widely-available model
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-                generationConfig: {
-                    responseMimeType: 'application/json'
-                }
+                contents: [{
+                    parts: [{ text: `${systemPrompt}\n\nUser Topic: ${prompt}` }]
+                }]
             })
         });
 
@@ -54,9 +52,13 @@ Output format STRICTLY AS JSON:
         }
 
         const data = await response.json();
-        const text = data.candidates[0].content.parts[0].text;
+        let text = data.candidates[0].content.parts[0].text;
+
+        // Strip markdown wrappers if AI adds them
+        text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
         res.status(200).json(JSON.parse(text));
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: `Parse error: ${error.message}` });
     }
 }
