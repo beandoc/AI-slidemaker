@@ -45,12 +45,11 @@ Common edit types you should handle:
 8. "Add animation" → Add CSS animations/transitions
 9. "Make it more professional/playful/minimal" → Restyle holistically`;
 
-    // Try models in order
+    // Try the most stable and latest models
     const models = [
-        'gemini-2.0-flash',
-        'gemini-2.0-flash-lite',
         'gemini-1.5-flash',
-        'gemini-pro'
+        'gemini-1.5-pro',
+        'gemini-2.0-flash'
     ];
 
     for (const model of models) {
