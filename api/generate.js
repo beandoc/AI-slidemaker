@@ -33,19 +33,17 @@ Output format STRICTLY AS JSON:
 }
 `;
 
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
 
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{
-                    role: 'user',
-                    parts: [{ text: `System Instructions: ${systemPrompt}\n\nUser Content: ${prompt}` }]
-                }],
-                generation_config: {
-                    response_mime_type: 'application/json'
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: 'application/json'
                 }
             })
         });
