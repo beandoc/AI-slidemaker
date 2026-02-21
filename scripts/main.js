@@ -77,13 +77,6 @@ async function handleGenerate() {
         return;
     }
 
-    if (!apiKey) {
-        showError("No Gemini API key found. Please open Settings and add one!");
-        // Auto-open settings
-        settingsModal.classList.add('open');
-        return;
-    }
-
     showError(null);
     const originalText = generateBtn.innerText;
     generateBtn.disabled = true;

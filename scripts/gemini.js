@@ -23,42 +23,22 @@ Output format STRICTLY AS JSON:
 `;
 
 export async function generateOutline(prompt, apiKey) {
-    if (!apiKey) throw new Error("Missing Gemini API Key. Please set it in Settings.");
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-    const requestBody = {
-        contents: [{ parts: [{ text: prompt }] }],
-        systemInstruction: {
-            parts: [{ text: SYSTEM_PROMPT }]
-        },
-        generationConfig: {
-            responseMimeType: "application/json"
-        }
-    };
-
-    const response = await fetch(url, {
+    const response = await fetch('/api/generate', {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({ prompt, apiKey })
     });
 
     if (!response.ok) {
         let errorData = await response.text();
         try {
             const parsed = JSON.parse(errorData);
-            errorData = parsed.error.message;
+            errorData = parsed.error;
         } catch (e) { }
-        throw new Error(`API Error: ${response.status} - ${errorData}`);
+        throw new Error(errorData || `API Error: ${response.status}`);
     }
 
-    const data = await response.json();
-    try {
-        const text = data.candidates[0].content.parts[0].text;
-        return JSON.parse(text);
-    } catch (err) {
-        throw new Error("Failed to parse AI response as JSON.");
-    }
+    return await response.json();
 }
