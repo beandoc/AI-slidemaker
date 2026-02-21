@@ -5,7 +5,8 @@ export default async function handler(req, res) {
     }
 
     const { currentHtml, instruction, apiKey: userKey } = req.body;
-    const apiKey = userKey || process.env.GEMINI_API_KEY;
+    // Prioritize client-provided key, then environment variable
+    let apiKey = (userKey && userKey.trim().length > 0) ? userKey : process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
         return res.status(400).json({ error: 'No API key configured. Please set GEMINI_API_KEY or provide one in Settings.' });
@@ -66,42 +67,52 @@ Common edit types you should handle:
                         }]
                     }],
                     generationConfig: {
-                        maxOutputTokens: 16384,
-                        temperature: 0.3
+                        temperature: 0.2
                     }
                 })
             });
 
-            if (response.status === 429 || response.status === 404) {
-                console.log(`Model ${model} unavailable (${response.status}), trying next...`);
+            if (response.status === 401 || response.status === 403) {
+                return res.status(401).json({ error: 'Invalid API Key. Please check your Gemini API key in Settings.' });
+            }
+
+            if (response.status === 429) {
+                console.log(`Model ${model} rate limited, trying next...`);
                 continue;
             }
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.log(`Model ${model} failed: ${errorText}`);
+                console.log(`Model ${model} failed with status ${response.status}: ${errorText}`);
                 continue;
             }
 
             const data = await response.json();
+
+            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                console.log(`Model ${model} returned empty/blocked response`);
+                continue;
+            }
+
             let text = data.candidates[0].content.parts[0].text;
 
             // Strip markdown wrappers if Gemini adds them
             text = text.replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim();
 
-            // Validate it looks like HTML
-            if (!text.includes('<!DOCTYPE') && !text.includes('<html') && !text.includes('<head')) {
-                console.log(`Model ${model} returned non-HTML, trying next...`);
+            // More flexible validation: must at least have a <body> or <style> or <html> tag
+            const hasHtml = /<html|<body|<section|<style/i.test(text);
+            if (!hasHtml) {
+                console.log(`Model ${model} returned non-HTML output, trying next...`);
                 continue;
             }
 
             return res.status(200).json({ html: text });
 
         } catch (error) {
-            console.log(`Model ${model} error: ${error.message}`);
+            console.log(`Model ${model} runtime error: ${error.message}`);
             continue;
         }
     }
 
-    return res.status(500).json({ error: 'All AI models failed. Please try again.' });
+    return res.status(500).json({ error: 'AI Editing Failed. This usually happens if the presentation is too large or the API key is invalid. Try a shorter instruction or check your API key.' });
 }

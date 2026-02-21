@@ -5,7 +5,8 @@ export default async function handler(req, res) {
     }
 
     const { prompt, apiKey: userKey } = req.body;
-    const apiKey = userKey || process.env.GEMINI_API_KEY;
+    // Prioritize client-provided key, then environment variable
+    let apiKey = (userKey && userKey.trim().length > 0) ? userKey : process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
         // No API key at all — use local fallback

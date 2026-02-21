@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Slidemaker — Editor</title>
     <link rel="stylesheet" href="styles/app.css">
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/2.8.0/dom-to-image-more.min.js"></script>
     <style>
         .editor-container {
             display: flex;
@@ -539,15 +544,27 @@
             <!-- Export Panel -->
             <div class="export-actions">
                 <h3>Export</h3>
-                <button class="btn btn-small" id="downloadHtmlBtn">⬇️ Download Single HTML</button>
-                <button class="btn btn-small" style="background: var(--border); color: var(--text-main);"
-                    id="openNewTabBtn">🔍 Open in New Tab</button>
-                <button class="btn btn-small" style="background: #00c4cc; color: #fff;" id="exportCanvaBtn">🖼️ Export
-                    to Canva...</button>
-                <button class="btn btn-small" style="background: #f24e1e; color: #fff;" id="exportFigmaBtn">🎨 Push to
-                    Figma...</button>
-                <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem;">
-                    *PDF, PNG, & PPTX export coming soon via Cloud infrastructure.
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+                    <button class="btn btn-small" id="downloadHtmlBtn">📄 HTML</button>
+                    <button class="btn btn-small" id="downloadPdfBtn">📕 PDF</button>
+                    <button class="btn btn-small" id="downloadSvgBtn">📐 SVG</button>
+                    <button class="btn btn-small" id="downloadPngBtn">🖼️ PNG</button>
+                    <button class="btn btn-small" style="background: var(--border); color: var(--text-main);"
+                        id="openNewTabBtn">🔍 Live</button>
+                </div>
+
+                <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <button class="btn btn-small" style="background: #00c4cc; color: #fff;" id="exportCanvaBtn">🖼️
+                        Export
+                        to Canva</button>
+                    <button class="btn btn-small" style="background: #f24e1e; color: #fff;" id="exportFigmaBtn">🎨 Push
+                        to
+                        Figma</button>
+                </div>
+
+                <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.2;">
+                    * Canva/Figma exports are currently in <strong>Developer Simulation</strong>. Real integration
+                    requires OAuth setup in production.
                 </p>
             </div>
 
@@ -588,6 +605,9 @@
         const codeEditor = document.getElementById('codeEditor');
         const downloadHtmlBtn = document.getElementById('downloadHtmlBtn');
         const openNewTabBtn = document.getElementById('openNewTabBtn');
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        const downloadSvgBtn = document.getElementById('downloadSvgBtn');
+        const downloadPngBtn = document.getElementById('downloadPngBtn');
         const exportCanvaBtn = document.getElementById('exportCanvaBtn');
         const exportFigmaBtn = document.getElementById('exportFigmaBtn');
         const updatePreviewBtn = document.getElementById('updatePreviewBtn');
@@ -798,6 +818,111 @@
             const blob = new Blob([currentHtml], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             window.open(url, '_blank');
+        });
+
+        // ─── PDF Export ───
+        downloadPdfBtn.addEventListener('click', async () => {
+            downloadPdfBtn.innerText = "⏳ Rendering PDF...";
+            downloadPdfBtn.disabled = true;
+            try {
+                const { jsPDF } = window.jspdf;
+                const iframe = previewFrame.contentWindow.document.body;
+                const doc = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'px',
+                    format: [1920, 1080]
+                });
+
+                const slides = previewFrame.contentWindow.document.querySelectorAll('.slide');
+
+                for (let i = 0; i < slides.length; i++) {
+                    const canvas = await html2canvas(slides[i], {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        logging: false
+                    });
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+                    if (i > 0) doc.addPage([1920, 1080], 'landscape');
+                    doc.addImage(imgData, 'JPEG', 0, 0, 1920, 1080);
+                }
+
+                doc.save(`presentation-${Date.now()}.pdf`);
+                showToast('PDF Exported Successfully!');
+            } catch (err) {
+                console.error(err);
+                showToast('PDF Export Failed', 'error');
+            } finally {
+                downloadPdfBtn.innerText = "📕 PDF";
+                downloadPdfBtn.disabled = false;
+            }
+        });
+
+        // ─── PNG Export ───
+        downloadPngBtn.addEventListener('click', async () => {
+            downloadPngBtn.innerText = "⏳ Snapshots...";
+            downloadPngBtn.disabled = true;
+            try {
+                const zip = new JSZip();
+                const slides = previewFrame.contentWindow.document.querySelectorAll('.slide');
+
+                for (let i = 0; i < slides.length; i++) {
+                    const canvas = await html2canvas(slides[i], { scale: 2 });
+                    const imgData = canvas.toDataURL('image/png').split(',')[1];
+                    zip.file(`slide-${i + 1}.png`, imgData, { base64: true });
+                }
+
+                const content = await zip.generateAsync({ type: "blob" });
+                const url = URL.createObjectURL(content);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `slides-png-${Date.now()}.zip`;
+                a.click();
+
+                showToast('PNG ZIP Exported!');
+            } catch (err) {
+                console.error(err);
+                showToast('PNG Export Failed', 'error');
+            } finally {
+                downloadPngBtn.innerText = "🖼️ PNG";
+                downloadPngBtn.disabled = false;
+            }
+        });
+
+        // ─── SVG Export ───
+        downloadSvgBtn.addEventListener('click', async () => {
+            downloadSvgBtn.innerText = "⏳ Vectorizing...";
+            downloadSvgBtn.disabled = true;
+            try {
+                // We'll export the CURRENTLY VISIBLE slide
+                const slides = previewFrame.contentWindow.document.querySelectorAll('.slide');
+                const currentIndex = previewFrame.contentWindow.slideshow?.current || 0;
+                const targetNode = slides[currentIndex] || slides[0];
+
+                const dataUrl = await domtoimage.toSvg(targetNode, {
+                    width: 1920,
+                    height: 1080,
+                    style: {
+                        transform: 'none',
+                        left: '0',
+                        top: '0'
+                    }
+                });
+
+                const link = document.createElement('a');
+                link.download = `slide-${currentIndex + 1}.svg`;
+                link.href = dataUrl;
+                link.click();
+
+                showToast('SVG Vector Exported! Drag into Canva.');
+            } catch (err) {
+                console.error(err);
+                showToast('SVG Export Failed', 'error');
+            } finally {
+                downloadSvgBtn.innerText = "📐 SVG";
+                downloadSvgBtn.disabled = false;
+            }
         });
 
         // Canva export
