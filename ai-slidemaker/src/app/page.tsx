@@ -3,16 +3,17 @@
 import { useEditorStore } from '@/store/editor';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Paintbrush, MonitorPlay, ImagePlus, Sparkles, Shapes, Upload, Trash2 } from 'lucide-react';
+import { LayoutDashboard, Paintbrush, MonitorPlay, ImagePlus, Sparkles, Shapes, Upload, Trash2, Wand2, Mic, MicOff } from 'lucide-react';
 import { getIconForText, getLucideIcon } from '@/lib/icons';
 import Image from 'next/image';
 
 export default function AppHome() {
-  const { presentation, setPresentation, activeSlideId, setActiveSlide, updateSlideContent, addAsset } = useEditorStore();
+  const { presentation, setPresentation, activeSlideId, setActiveSlide, updateSlideContent, addAsset, cycleLayout, updateTheme } = useEditorStore();
   const [mounted, setMounted] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [aiInstruction, setAiInstruction] = useState('');
   const [isArchitecting, setIsArchitecting] = useState(false);
+  const [isListening, setIsListening] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -153,6 +154,31 @@ export default function AppHome() {
     }
   };
 
+  const handleVoiceCommand = () => {
+    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice recognition is not supported in this browser.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setAiInstruction(transcript);
+    };
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      recognition.start();
+    }
+  };
+
   return (
     <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-[#0a0c10] relative text-slate-200">
       {/* BACKGROUND ACCENTS */}
@@ -216,6 +242,12 @@ export default function AppHome() {
             <button className="flex items-center gap-2 text-xs font-bold text-sky-400"><MonitorPlay size={16} /> Present</button>
             <button className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-white transition-colors"><Shapes size={16} /> Edit Layout</button>
             <button className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-white transition-colors"><Paintbrush size={16} /> Customize</button>
+            <button
+              onClick={() => activeSlideId && cycleLayout(activeSlideId)}
+              className="flex items-center gap-2 text-xs font-bold text-sky-400 animate-pulse border border-sky-500/30 px-3 py-1.5 rounded-full hover:bg-sky-500/10 transition-all"
+            >
+              <Wand2 size={16} /> Magic Layout
+            </button>
           </div>
         </div>
 
@@ -243,10 +275,11 @@ export default function AppHome() {
                   exit={{ opacity: 0, scale: 1.05, y: -10 }}
                   transition={{ duration: 0.5, ease: "circOut" }}
                   className="w-full aspect-video bg-[#0d0f14] flex flex-col items-center justify-center p-20 relative text-center"
+                  style={{ '--accent-color': presentation.accentColor || '#38bdf8' } as React.CSSProperties}
                 >
                   {/* SLIDE CONTENT RENDERING */}
                   {(activeSlide.content.customIconUrl || activeSlide.content.icon) && (
-                    <div className="mb-10 flex justify-center text-sky-400">
+                    <div className="mb-10 flex justify-center" style={{ color: 'var(--accent-color)' }}>
                       {activeSlide.content.customIconUrl ? (
                         <div className="relative w-16 h-16">
                           <Image
@@ -278,38 +311,58 @@ export default function AppHome() {
                     <input
                       value={activeSlide.content.subtitle || ''}
                       onChange={(e) => updateSlideContent(activeSlide.id, { subtitle: e.target.value })}
-                      className="bg-transparent text-lg md:text-xl text-sky-400/80 text-center w-full focus:outline-none font-medium placeholder-sky-400/10"
+                      className="bg-transparent text-lg md:text-xl text-center w-full focus:outline-none font-medium placeholder-sky-400/10"
                       placeholder="Enter subtitle..."
+                      style={{ color: 'var(--accent-color)', opacity: 0.8 }}
                     />
                   )}
 
                   {activeSlide.type === 'content' && activeSlide.content.bullets && (
                     <ul className="text-left max-w-2xl mx-auto space-y-4 mt-8">
-                      {activeSlide.content.bullets.map((b, idx) => (
-                        <li key={idx} className="flex gap-4 items-start text-xl text-slate-400 hover:text-white transition-colors">
-                          <span className="text-sky-500/40 mt-1">•</span>
-                          <textarea
-                            value={b}
-                            onChange={(e) => {
-                              const newBullets = [...(activeSlide.content.bullets || [])];
-                              newBullets[idx] = e.target.value;
-                              updateSlideContent(activeSlide.id, { bullets: newBullets })
-                            }}
-                            className="bg-transparent w-full focus:outline-none resize-none overflow-hidden"
-                            rows={1}
-                          />
-                        </li>
-                      ))}
+                      {activeSlide.content.bullets.map((b, idx) => {
+                        const bulletText = typeof b === 'string' ? b : b.text;
+                        const BulletIcon = typeof b === 'object' && b.icon ? getLucideIcon(b.icon) : null;
+
+                        return (
+                          <li key={idx} className="flex gap-4 items-start text-xl text-slate-400 hover:text-white transition-colors group">
+                            {BulletIcon ? (
+                              <span style={{ color: 'var(--accent-color)' }} className="mt-1"><BulletIcon size={20} /></span>
+                            ) : (
+                              <span style={{ color: 'var(--accent-color)', opacity: 0.4 }} className="mt-1">•</span>
+                            )}
+                            <textarea
+                              value={bulletText}
+                              onChange={(e) => {
+                                const newBullets = [...(activeSlide.content.bullets || [])];
+                                if (typeof b === 'string') {
+                                  newBullets[idx] = e.target.value;
+                                } else {
+                                  newBullets[idx] = { ...b, text: e.target.value };
+                                }
+                                updateSlideContent(activeSlide.id, { bullets: newBullets })
+                              }}
+                              className="bg-transparent w-full focus:outline-none resize-none overflow-hidden"
+                              rows={1}
+                            />
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
 
                   {activeSlide.type === 'feature-grid' && activeSlide.content.bullets && (
                     <div className="grid grid-cols-2 gap-4 mt-12 max-w-4xl mx-auto">
-                      {activeSlide.content.bullets.map((b, idx) => (
-                        <div key={idx} className="p-8 rounded-2xl bg-white/[0.02] border border-white/5 text-slate-300 text-lg font-medium text-center">
-                          {b}
-                        </div>
-                      ))}
+                      {activeSlide.content.bullets.map((b, idx) => {
+                        const bulletText = typeof b === 'string' ? b : b.text;
+                        const BulletIcon = typeof b === 'object' && b.icon ? getLucideIcon(b.icon) : null;
+
+                        return (
+                          <div key={idx} className="p-8 rounded-2xl bg-white/[0.02] border border-white/5 text-slate-300 text-lg font-medium text-center flex flex-col items-center gap-4">
+                            {BulletIcon && <div style={{ color: 'var(--accent-color)' }}><BulletIcon size={32} /></div>}
+                            {bulletText}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
 
@@ -338,7 +391,12 @@ export default function AppHome() {
         {/* AI INPUT BAR - MINIMALIST */}
         <div className="p-8 flex justify-center border-t border-white/5 bg-[#0a0c10]/50 backdrop-blur-md">
           <div className="w-full max-w-2xl bg-white/5 rounded-2xl border border-white/5 flex items-center p-2 focus-within:border-sky-500/40 transition-all shadow-xl">
-            <div className="px-4 text-sky-500/40"><Sparkles size={18} /></div>
+            <button
+              onClick={handleVoiceCommand}
+              className={`p-4 transition-all rounded-xl ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'text-sky-500/40 hover:text-sky-400 hover:bg-white/5'}`}
+            >
+              {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+            </button>
             <input
               value={aiInstruction}
               onChange={(e) => setAiInstruction(e.target.value)}
@@ -415,6 +473,20 @@ export default function AppHome() {
                   No logos uploaded
                 </div>
               )}
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-white/5">
+            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4">Brand Identity</h3>
+            <div className="flex gap-2">
+              {['#38bdf8', '#fb7185', '#34d399', '#facc15', '#a78bfa', '#f8fafc'].map(color => (
+                <button
+                  key={color}
+                  onClick={() => updateTheme({ accentColor: color })}
+                  className={`w-6 h-6 rounded-full border-2 transition-all ${presentation.accentColor === color ? 'border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.2)]' : 'border-transparent hover:scale-105'}`}
+                  style={{ backgroundColor: color }}
+                />
+              ))}
             </div>
           </div>
 

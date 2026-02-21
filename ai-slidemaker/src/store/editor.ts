@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 // Types defining the JSON Abstract Syntax Tree (AST)
 
@@ -24,10 +25,15 @@ export interface BrandAsset {
     url: string;
 }
 
+export interface BulletPoint {
+    text: string;
+    icon?: string;
+}
+
 export interface SlideContent {
     heading?: string;
     subtitle?: string;
-    bullets?: string[];
+    bullets?: (string | BulletPoint)[];
     quote?: string;
     attribution?: string;
     stats?: StatItem[];
@@ -50,6 +56,7 @@ export interface PresentationAST {
     theme: string;
     slides: SlideAST[];
     assets: BrandAsset[];
+    accentColor?: string;
 }
 
 // ------------------------------------
@@ -63,47 +70,72 @@ interface EditorState {
     // Actions
     setPresentation: (data: PresentationAST) => void;
     setActiveSlide: (id: string) => void;
+    cycleLayout: (slideId: string) => void;
     updateSlideContent: (slideId: string, partialContent: Partial<SlideContent>) => void;
+    updateTheme: (partialTheme: Partial<PresentationAST>) => void;
     addAsset: (asset: BrandAsset) => void;
 }
 
-export const useEditorStore = create<EditorState>((set) => ({
-    presentation: null,
-    activeSlideId: null,
+export const useEditorStore = create<EditorState>()(
+    persist(
+        (set) => ({
+            presentation: null,
+            activeSlideId: null,
 
-    setPresentation: (data) => set({
-        presentation: data,
-        activeSlideId: data.slides.length > 0 ? data.slides[0].id : null
-    }),
+            setPresentation: (data: PresentationAST) => set({
+                presentation: data,
+                activeSlideId: data.slides.length > 0 ? data.slides[0].id : null
+            }),
 
-    setActiveSlide: (id) => set({ activeSlideId: id }),
+            setActiveSlide: (id: string) => set({ activeSlideId: id }),
 
-    addAsset: (asset) => set((state) => {
-        if (!state.presentation) return state;
-        return {
-            presentation: {
-                ...state.presentation,
-                assets: [...(state.presentation.assets || []), asset]
-            }
-        };
-    }),
+            cycleLayout: (slideId: string) => set((state: EditorState) => {
+                if (!state.presentation) return state;
+                const layouts: SlideLayout[] = ['title', 'content', 'stats', 'feature-grid', 'quote', 'cta'];
 
-    updateSlideContent: (slideId, partialContent) => set((state) => {
-        if (!state.presentation) return state;
-
-        return {
-            presentation: {
-                ...state.presentation,
-                slides: state.presentation.slides.map(slide => {
-                    if (slide.id === slideId) {
-                        return {
-                            ...slide,
-                            content: { ...slide.content, ...partialContent }
-                        }
+                return {
+                    presentation: {
+                        ...state.presentation,
+                        slides: state.presentation.slides.map((slide: SlideAST) => {
+                            if (slide.id === slideId) {
+                                const currentIndex = layouts.indexOf(slide.type);
+                                const nextIndex = (currentIndex + 1) % layouts.length;
+                                return { ...slide, type: layouts[nextIndex] };
+                            }
+                            return slide;
+                        })
                     }
-                    return slide;
-                })
-            }
-        };
-    })
-}));
+                };
+            }),
+
+            updateSlideContent: (slideId: string, partialContent: Partial<SlideContent>) => set((state: EditorState) => {
+                if (!state.presentation) return state;
+                return {
+                    presentation: {
+                        ...state.presentation,
+                        slides: state.presentation.slides.map((slide: SlideAST) =>
+                            slide.id === slideId ? { ...slide, content: { ...slide.content, ...partialContent } } : slide
+                        )
+                    }
+                };
+            }),
+
+            updateTheme: (partialTheme: Partial<PresentationAST>) => set((state: EditorState) => ({
+                presentation: state.presentation ? { ...state.presentation, ...partialTheme } : null
+            })),
+
+            addAsset: (asset: BrandAsset) => set((state: EditorState) => {
+                if (!state.presentation) return state;
+                return {
+                    presentation: {
+                        ...state.presentation,
+                        assets: [...(state.presentation.assets || []), asset]
+                    }
+                };
+            }),
+        }),
+        {
+            name: 'slidemaker-storage',
+        }
+    )
+);

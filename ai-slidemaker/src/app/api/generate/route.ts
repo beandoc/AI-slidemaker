@@ -13,26 +13,31 @@ Output JSON Structure:
   "theme": "bold-signal",
   "slides": [
     { 
-       "id": "slide_timestamp_uuid",
+       "id": "slide_1",
        "type": "title", 
        "content": {
           "heading": "Main Idea", 
-          "subtitle": "A strong subtitle"
+          "subtitle": "A strong subtitle",
+          "icon": "Cpu"
        }
     },
     { 
-       "id": "slide_timestamp_uuid_2",
+       "id": "slide_2",
        "type": "content", 
        "content": {
           "heading": "Key Points", 
-          "bullets": ["First point", "Second point"]
+          "bullets": [
+             { "text": "First point", "icon": "CheckCircle" },
+             { "text": "Second point", "icon": "Zap" }
+          ]
        }
     }
   ]
 }
 
-Available slide \`type\` values: 'title', 'content', 'quote', 'stats', 'cta'.
-You MUST generate unique \`id\` fields for every slide.
+Available slide \`type\` values: 'title', 'content', 'quote', 'stats', 'cta', 'feature-grid'.
+Icons should be standard Lucide icon names (e.g., Rocket, Zap, Cpu, BarChart3, Shield, Globe).
+\`stats\` slides should use the same bullet structure but with numbers in text.
 `;
 
 export async function POST(req: Request) {
@@ -45,7 +50,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "No Gemini API Key found. Add GEMINI_API_KEY to your env." }, { status: 400 });
         }
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
 
         const response = await fetch(url, {
             method: "POST",

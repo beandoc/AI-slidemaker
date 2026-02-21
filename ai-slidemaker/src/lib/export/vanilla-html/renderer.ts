@@ -8,7 +8,7 @@ export function generateProductionHTML(ast: PresentationAST) {
     const slidesHTML = ast.slides.map((s, i) => buildSlideHTML(s, i, ast.theme)).join('\n');
 
     const coreCSS = getCoreCSS();
-    const themeData = getThemeData(ast.theme);
+    const themeData = getThemeData(ast);
     const coreJS = getCoreJavascript();
 
     return `<!DOCTYPE html>
@@ -68,9 +68,15 @@ function buildSlideHTML(slide: SlideAST, index: number, themePreset: string) {
                        </div>`;
             break;
         case 'content':
-            const listItems = (slide.content.bullets || []).map((b, i) =>
-                `<li class="reveal delay-${(i % 5) + 1}">${escapeHTML(b)}</li>`
-            ).join('');
+            const listItems = (slide.content.bullets || []).map((b, i) => {
+                const text = typeof b === 'string' ? b : b.text;
+                const icon = typeof b === 'object' ? b.icon : null;
+                const iconSVG = icon ? getIconSVG(icon) : '';
+                return `<li class="reveal delay-${(i % 5) + 1} flex-item">
+                            ${iconSVG ? `<span class="bullet-icon">${iconSVG}</span>` : '<span class="bullet-dot">•</span>'}
+                            <span class="bullet-text">${escapeHTML(text)}</span>
+                        </li>`;
+            }).join('');
             content = `<div class="content-layout">
                         <div class="text-side">
                             ${iconHTML}
@@ -109,11 +115,17 @@ function buildSlideHTML(slide: SlideAST, index: number, themePreset: string) {
             break;
         case 'feature-grid':
         case 'split':
-            const bentoItems = (slide.content.bullets || []).map((b, i) =>
-                `<div class="bento-item reveal delay-${(i % 5) + 1}">
-                    <div class="bento-content">${escapeHTML(b)}</div>
-                 </div>`
-            ).join('');
+            const bentoItems = (slide.content.bullets || []).map((b, i) => {
+                const text = typeof b === 'string' ? b : b.text;
+                const icon = typeof b === 'object' ? b.icon : null;
+                const iconSVG = icon ? getIconSVG(icon) : '';
+                return `<div class="bento-item reveal delay-${(i % 5) + 1}">
+                            <div class="bento-inner">
+                                ${iconSVG ? `<div class="bento-icon">${iconSVG}</div>` : ''}
+                                <div class="bento-content">${escapeHTML(text)}</div>
+                            </div>
+                        </div>`;
+            }).join('');
             content = `<div class="bento-layout">
                         <h2 class="reveal">${escapeHTML(slide.content.heading)}</h2>
                         <div class="bento-grid">
@@ -160,10 +172,24 @@ function escapeHTML(str?: string) {
         .replace(/'/g, '&#039;');
 }
 
-function getThemeData(themeId: string) {
-    // VIBE: Corporate / Minimalist
-    if (themeId === 'corporate-sharp') {
-        return {
+function getThemeData(ast: PresentationAST) {
+    let themeData = {
+        fontUrl: `<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800&f[]=satoshi@400,500&display=swap" rel="stylesheet">`,
+        css: `
+            :root {
+                --bg-primary: #0f172a;
+                --text-primary: #f8fafc;
+                --accent: #f472b6;
+                --accent-rgb: 244, 114, 182;
+                --font-display: 'Cabinet Grotesk', sans-serif;
+                --font-body: 'Satoshi', sans-serif;
+            }
+            h1, h2 { font-family: var(--font-display); color: var(--accent); }
+        `
+    };
+
+    if (ast.theme === 'corporate-sharp') {
+        themeData = {
             fontUrl: `<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">`,
             css: `
                 :root {
@@ -178,11 +204,8 @@ function getThemeData(themeId: string) {
                 h1, h2 { font-family: var(--font-display); font-weight: 700; color: #000; letter-spacing: -0.04em; }
             `
         };
-    }
-
-    // VIBE: High-End Design / Brutalist
-    if (themeId === 'neon-cyber' || themeId === 'bold-signal') {
-        return {
+    } else if (ast.theme === 'neon-cyber' || ast.theme === 'bold-signal') {
+        themeData = {
             fontUrl: `<link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500&display=swap" rel="stylesheet">`,
             css: `
                 :root {
@@ -203,21 +226,23 @@ function getThemeData(themeId: string) {
         };
     }
 
-    // Default Fallback: Elegant Editorial
+    // Inject Custom Accent if provided
+    const customAccent = ast.accentColor ? `
+        :root {
+            --accent: ${ast.accentColor};
+            --accent-rgb: ${hexToRgb(ast.accentColor)};
+        }
+    ` : '';
+
     return {
-        fontUrl: `<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800&f[]=satoshi@400,500&display=swap" rel="stylesheet">`,
-        css: `
-            :root {
-                --bg-primary: #0f172a;
-                --text-primary: #f8fafc;
-                --accent: #f472b6;
-                --accent-rgb: 244, 114, 182;
-                --font-display: 'Cabinet Grotesk', sans-serif;
-                --font-body: 'Satoshi', sans-serif;
-            }
-            h1, h2 { font-family: var(--font-display); color: var(--accent); }
-        `
+        fontUrl: themeData.fontUrl,
+        css: themeData.css + customAccent
     };
+}
+
+function hexToRgb(hex: string) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '34, 211, 238';
 }
 
 function getCoreCSS() {
@@ -259,8 +284,12 @@ function getCoreCSS() {
 
         h1 { font-size: clamp(2.5rem, 6vw, 5rem); margin-bottom: 1rem; line-height: 1.1; }
         h2 { font-size: clamp(1.75rem, 4vw, 3rem); margin-bottom: 2rem; line-height: 1.2; }
-        p, li { font-size: clamp(1rem, 1.5vw, 1.5rem); line-height: 1.5; margin-bottom: 0.5rem; }
-        .content-list { padding-left: 2rem; }
+        p, .bullet-text { font-size: clamp(1rem, 1.5vw, 1.5rem); line-height: 1.5; margin-bottom: 0.5rem; }
+        .content-list { list-style: none; padding-left: 0; }
+        .flex-item { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.5rem; }
+        .bullet-icon { color: var(--accent); width: 24px; flex-shrink: 0; }
+        .bullet-dot { color: rgba(var(--accent-rgb), 0.4); flex-shrink: 0; }
+        .bullet-icon svg { width: 100%; height: auto; }
 
         /* Bento Grid System */
         .bento-grid {
@@ -276,14 +305,18 @@ function getCoreCSS() {
             border: 1px solid rgba(255,255,255,0.08);
             backdrop-filter: blur(10px);
             border-radius: 18px;
-            padding: 2rem;
+            padding: 2.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 500;
             grid-column: span 4;
             transition: all 0.4s ease;
+            text-align: center;
         }
+        .bento-inner { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+        .bento-icon { color: var(--accent); width: 48px; }
+        .bento-icon svg { width: 100%; height: auto; }
         .bento-item:hover { background: rgba(255,255,255,0.06); transform: translateY(-5px); border-color: var(--accent); }
         .bento-item:nth-child(1) { grid-column: span 8; grid-row: span 1; }
         .bento-item:nth-child(2) { grid-column: span 4; grid-row: span 2; }
@@ -323,15 +356,46 @@ function getCoreCSS() {
         
         .cta-box { display: inline-block; padding: 1rem 2.5rem; background: var(--accent); color: var(--bg-primary); font-weight: bold; font-size: 1.25rem; border-radius: 4px; }
 
-        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-        .slide.visible .reveal { opacity: 1; transform: translateY(0); }
-        .delay-1 { transition-delay: 0.1s; } .delay-2 { transition-delay: 0.2s; }
+        .reveal { 
+            opacity: 0; 
+            transform: translateY(40px) scale(0.95); 
+            filter: blur(10px);
+            transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        .slide.visible .reveal { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+            filter: blur(0);
+        }
+        
+        /* Modern Slide Transitions */
+        .slide {
+            transition: transform 1s cubic-bezier(0.8, 0, 0.2, 1), opacity 1s ease;
+        }
+
+        .delay-1 { transition-delay: 0.1s; } 
+        .delay-2 { transition-delay: 0.2s; }
         .delay-3 { transition-delay: 0.3s; }
+        .delay-4 { transition-delay: 0.4s; }
+        .delay-5 { transition-delay: 0.5s; }
 
         .progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); z-index: 1000; transition: width 0.3s ease; }
         .nav-dots { position: fixed; right: 20px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 1000; }
         .nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-primary); opacity: 0.3; cursor: pointer; transition: all 0.3s; border: none; }
         .nav-dot.active { opacity: 1; transform: scale(1.5); background: var(--accent); }
+
+        /* Liquid Background Accent */
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: -20%; left: -20%;
+            width: 140%; height: 140%;
+            background: radial-gradient(circle at center, rgba(var(--accent-rgb), 0.03) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            transition: transform 2s ease-out;
+        }
+        .slide.visible::before { transform: translate(5%, 5%); }
     `;
 }
 
