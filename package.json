@@ -1,0 +1,15 @@
+{
+  "name": "front-end-slides",
+  "version": "1.0.0",
+  "description": "> **Turn ideas into stunning, zero-dependency HTML presentations — powered by Gemini AI.**",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

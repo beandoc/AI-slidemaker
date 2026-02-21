@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Slidemaker — Editor</title>
+    <link rel="stylesheet" href="styles/app.css">
+    <style>
+        .editor-container {
+            display: flex;
+            height: calc(100vh - 100px);
+            gap: 1rem;
+            margin: 0 auto;
+            max-width: 1400px;
+            padding: 0 1rem 1rem;
+        }
+
+        .preview-pane {
+            flex: 2;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-pane iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+            /* In case the slide style doesn't cover immediately */
+            border-radius: var(--radius);
+        }
+
+        .sidebar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .code-pane {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .code-pane h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .code-editor {
+            flex: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: #10b981;
+            font-family: monospace;
+            padding: 1rem;
+            border-radius: var(--radius);
+            resize: none;
+            outline: none;
+            font-size: 0.85rem;
+        }
+
+        .export-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+        }
+
+        .export-actions h3 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header style="padding: 1rem 2rem; margin-bottom: 1rem; max-width: 1400px; margin: 0 auto;">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2" />
+                <path d="M6 10h12M6 14h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            AI <span>Slidemaker</span> <span
+                style="font-size:0.8rem; font-weight: normal; margin-left: 1rem; color: var(--text-muted);">&mdash;
+                Editor</span>
+        </div>
+        <div>
+            <a href="index.html" class="settings-btn" style="text-decoration: none;">← Back to Generator</a>
+        </div>
+    </header>
+
+    <div class="editor-container">
+        <div class="preview-pane">
+            <iframe id="previewFrame" title="Presentation Preview"></iframe>
+        </div>
+
+        <div class="sidebar">
+            <div class="export-actions">
+                <h3>Export</h3>
+                <button class="btn btn-small" id="downloadHtmlBtn">⬇️ Download Single HTML</button>
+                <button class="btn btn-small" style="background: var(--border); color: var(--text-main);"
+                    id="openNewTabBtn">🔍 Open in New Tab</button>
+                <button class="btn btn-small" style="background: #00c4cc; color: #fff;" id="exportCanvaBtn">🖼️ Export
+                    to Canva...</button>
+                <button class="btn btn-small" style="background: #f24e1e; color: #fff;" id="exportFigmaBtn">🎨 Push to
+                    Figma...</button>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                    *PDF, PNG, & PPTX export coming soon via Cloud infrastructure.
+                </p>
+            </div>
+
+            <div class="code-pane">
+                <h3>Raw HTML Code</h3>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem;">You can edit this HTML
+                    directly to tweak the output before downloading.</p>
+                <textarea class="code-editor" id="codeEditor"></textarea>
+                <button class="btn btn-small" id="updatePreviewBtn" style="margin-top: 0.5rem;">↻ Update
+                    Preview</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { exportToCanva } from './scripts/export/canva.js';
+        import { exportToFigma } from './scripts/export/figma.js';
+
+        const generatedHTML = sessionStorage.getItem('LAST_GENERATED_PRESENTATION');
+        const outlineData = sessionStorage.getItem('LAST_OUTLINE');
+        const styleData = sessionStorage.getItem('LAST_STYLE');
+
+        let currentHtml = generatedHTML || '<h1>No presentation found</h1><p>Please generate one first.</p>';
+
+        const previewFrame = document.getElementById('previewFrame');
+        const codeEditor = document.getElementById('codeEditor');
+        const downloadHtmlBtn = document.getElementById('downloadHtmlBtn');
+        const openNewTabBtn = document.getElementById('openNewTabBtn');
+        const exportCanvaBtn = document.getElementById('exportCanvaBtn');
+        const exportFigmaBtn = document.getElementById('exportFigmaBtn');
+        const updatePreviewBtn = document.getElementById('updatePreviewBtn');
+
+        function updatePreview(html) {
+            // Write HTML to iframe via srcdoc
+            previewFrame.srcdoc = html;
+            codeEditor.value = html;
+            currentHtml = html;
+        }
+
+        if (!generatedHTML) {
+            window.location.href = 'index.html';
+        } else {
+            updatePreview(currentHtml);
+        }
+
+        updatePreviewBtn.addEventListener('click', () => {
+            updatePreview(codeEditor.value);
+        });
+
+        downloadHtmlBtn.addEventListener('click', () => {
+            const title = outlineData ? JSON.parse(outlineData).title || 'presentation' : 'presentation';
+            const filename = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.html';
+
+            const blob = new Blob([currentHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 0);
+        });
+
+        openNewTabBtn.addEventListener('click', () => {
+            const blob = new Blob([currentHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        });
+
+        exportCanvaBtn.addEventListener('click', async () => {
+            exportCanvaBtn.innerText = "⏳ Exporting...";
+            exportCanvaBtn.disabled = true;
+            try {
+                // We'd parse existing OutlineData. Currently hard-failing without real OAuth flow.
+                const parsed = outlineData ? JSON.parse(outlineData) : null;
+                const fakeAuth = { accessToken: "canva_mock_token_123" };
+                const res = await exportToCanva(parsed, fakeAuth);
+                alert(res.message + `\nWould redirect to: ${res.designUrl}`);
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                exportCanvaBtn.innerText = "🖼️ Export to Canva...";
+                exportCanvaBtn.disabled = false;
+            }
+        });
+
+        exportFigmaBtn.addEventListener('click', async () => {
+            exportFigmaBtn.innerText = "⏳ Exporting...";
+            exportFigmaBtn.disabled = true;
+            try {
+                const parsed = outlineData ? JSON.parse(outlineData) : null;
+                const fakeAuth = { personalAccessToken: "figma_mock_pat_123" };
+                const fileId = prompt("Enter Figma File ID (e.g. j1l2k3j1l23j12l3j):", "mock_file_id");
+
+                if (fileId) {
+                    const res = await exportToFigma(parsed, fakeAuth, fileId);
+                    alert(res.message + `\nData has been pushed for File ID: ${fileId}`);
+                }
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                exportFigmaBtn.innerText = "🎨 Push to Figma...";
+                exportFigmaBtn.disabled = false;
+            }
+        });
+    </script>
+
+</body>
+
+</html>

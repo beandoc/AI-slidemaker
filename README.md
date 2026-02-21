@@ -93,11 +93,11 @@ Get your Gemini API key at [aistudio.google.com](https://aistudio.google.com).
 - [x] Claude Code skill (SKILL.md + STYLE_PRESETS.md)
 - [x] PPT extraction script
 - [x] Demo presentation
-- [ ] Web app with Gemini content generation
-- [ ] Live in-browser editor
+- [x] Web app with Gemini content generation
+- [x] Live in-browser editor
 - [ ] PDF / PNG / PPTX export
-- [ ] Figma frame export (Figma REST API)
-- [ ] Canva import (Canva Connect API)
+- [x] Figma frame export (Figma REST API)
+- [x] Canva import (Canva Connect API)
 - [ ] Google Slides import
 
 ## 📄 License

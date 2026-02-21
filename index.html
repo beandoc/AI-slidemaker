@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Slidemaker — Zero-dependency HTML presentations</title>
+    <meta name="description"
+        content="Turn ideas into stunning, zero-dependency HTML presentations powered by Gemini AI.">
+    <!-- Fonts inside app.css -->
+    <link rel="stylesheet" href="styles/app.css">
+    <!-- Scripts -->
+    <script type="module" src="scripts/main.js" defer></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2" />
+                    <path d="M6 10h12M6 14h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                AI <span>Slidemaker</span>
+            </div>
+            <div>
+                <button class="settings-btn" id="openSettingsBtn">⚙️ Settings</button>
+            </div>
+        </header>
+
+        <div class="hero">
+            <h1>Zero-dependency presentations.<br>Generated in seconds.</h1>
+            <p>A premium slide generation tool with curated visual styles, viewport-perfect layouts, and pure HTML/CSS
+                output.</p>
+        </div>
+
+        <div class="app-grid">
+            <!-- Input Area -->
+            <div class="panel">
+                <h2>🧠 Content Outline or Prompt</h2>
+                <textarea id="promptInput" class="prompt-input"
+                    placeholder="Paste your notes, a topic, or bullet points here...&#10;&#10;E.g., 'Create a 5-slide pitch deck for a futuristic coffee machine that uses AI to blend beans.'"></textarea>
+
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    PowerPoint conversion: Provide the text of your PowerPoint here for now, or use the Python script to
+                    extract.
+                </p>
+            </div>
+
+            <!-- Style Selection -->
+            <div class="panel">
+                <h2>🎨 Choose a Style</h2>
+                <!-- Style Grid populated by JS -->
+                <div class="style-grid" id="styleGrid"></div>
+
+                <div style="margin-top: 2rem;">
+                    <!-- Error messages -->
+                    <div id="errorBox"
+                        style="display: none; color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    </div>
+                    <button class="btn" id="generateBtn">
+                        ✨ Generate Presentation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <h3>API Configuration</h3>
+            <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">
+                Provide your Gemini API Key. It is stored securely in your browser's local storage and used directly to
+                generate content.
+            </p>
+            <input type="password" id="apiKeyInput" placeholder="sk-..." />
+            <div class="modal-actions">
+                <button class="btn-ghost" id="cancelSettingsBtn">Cancel</button>
+                <button class="btn" id="saveSettingsBtn" style="width: auto;">Save</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
