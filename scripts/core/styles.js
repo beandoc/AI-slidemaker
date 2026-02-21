@@ -70,11 +70,16 @@ h1, h2, .h-hero {
 #p-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.05); z-index: 2000; }
 #p-inner { height: 100%; background: var(--accent); width: 0; transition: width 0.1s linear; box-shadow: 0 0 10px var(--accent); }
 
-/* FLOATING NAV */
-#floating-nav { position: fixed; right: 2rem; top: 50%; transform: translateY(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 1rem; }
-.nav-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.2); background: transparent; cursor: pointer; transition: 0.3s; }
-.nav-dot.active { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 15px var(--accent); width: 14px; height: 14px; }
-.nav-dot:hover { border-color: #fff; }
+/* FLOATING NAV (Refined Bars) */
+#floating-nav { position: fixed; right: 2rem; top: 50%; transform: translateY(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 0.8rem; }
+.nav-dot { 
+    width: 4px; height: 25px; 
+    background: rgba(255,255,255,0.15); border: none; 
+    cursor: pointer; transition: all 0.6s var(--motion-easing); 
+    border-radius: 2px;
+}
+.nav-dot.active { background: var(--accent); height: 50px; opacity: 1; box-shadow: 0 0 15px var(--accent); }
+.nav-dot:hover { background: rgba(255,255,255,0.4); }
 
 /* DESIGN SYSTEM COMPONENTS */
 .label { font-family: var(--f-head); font-size: 0.8rem; letter-spacing: 0.4em; color: var(--accent); text-transform: uppercase; margin-bottom: 2rem; display: block; }
@@ -109,9 +114,14 @@ h2 { font-family: var(--f-head); font-size: clamp(2.5rem, 6vw, 4.5rem); line-hei
 
 /* BACKGROUNDS */
 .bg-wrap { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-.bg-img { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.bg-img { 
+    position: absolute; inset: 0; background-size: cover; background-position: center; 
+    background-attachment: fixed; /* Parallax Depth */
+}
 .ken-burns { animation: kenburns 40s linear infinite alternate; }
 @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.1); } }
+.drift-slow { animation: drift 30s linear infinite alternate; }
+@keyframes drift { from { transform: scale(1.05) translate(-1%,-1%); } to { transform: scale(1.1) translate(1%,1%); } }
 .overlay { position: absolute; inset: 0; z-index: 1; background: linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 100%); }
 
 /* ANIMATION REVEALS */
@@ -403,9 +413,24 @@ cite { font-size: 1.4rem; letter-spacing: 0.2em; opacity: 0.5; text-transform: u
 .faq-a { opacity: 0.7; font-size: 1.2rem; line-height: 1.8; padding-left: 2.5rem; border-left: 2px solid rgba(255,255,255,0.1); }
 
 /* FOOTER BRANDING */
-.slide--footer { background: var(--bg); border-top: 1px solid rgba(255,255,255,0.05); }
-.footer-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 6rem; text-align: left; }
-.footer-brand h3 { font-family: var(--f-head); font-size: 3rem; margin-bottom: 1rem; }
+/* 11. THE SPLIT MAGAZINE SPREAD (Lost Art) */
+.slide--split { display: grid; grid-template-columns: 1.1fr 0.9fr; padding: 0; align-items: stretch; }
+.split-text { display: flex; align-items: center; padding: 10vw; position: relative; z-index: 10; }
+.split-photo { position: relative; overflow: hidden; }
+.photo-overlay { position: absolute; inset: 0; background: linear-gradient(to right, var(--bg), transparent); z-index: 2; }
+
+/* 12. ARCHITECTURAL ACCENTS */
+.vertical-title {
+    position: absolute; left: 4rem; top: 50%; transform: translateY(-50%) rotate(-90deg);
+    font-family: var(--f-head); font-size: 8rem; opacity: 0.05; pointer-events: none;
+    letter-spacing: 0.5em; white-space: nowrap; z-index: 0;
+}
+.vertical-tag {
+    position: absolute; left: 2rem; bottom: 4rem; transform: rotate(-90deg); transform-origin: left bottom;
+    font-size: 0.7rem; font-weight: 800; letter-spacing: 0.4em; opacity: 0.5; text-transform: uppercase; z-index: 10;
+}
+.vertical-tag.right { left: auto; right: 2rem; transform: rotate(90deg); transform-origin: right bottom; }
+
 .footer-contact p { font-size: 1.2rem; margin-bottom: 0.5rem; opacity: 0.6; }
 `;
 }

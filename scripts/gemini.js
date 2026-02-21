@@ -21,34 +21,35 @@ Design Philosophy V15 (The Senior Directives):
 5. MOTION WITH PURPOSE: Only use snappy decelerations (cubic-bezier(0.22, 1, 0.36, 1)). Stagger all elements by 100ms.
 6. THE GRID BREAK: Deliberately push one element off-center or bleed it (bleed archetype) to create spatial tension.
 7. WHISPER BORDERS: Use opacity-based 1px lines (rgba(255,255,255,0.08)), never solid borders.
-8. TEXTURE IS TRUTH: Always apply the 4% Fractal Noise overlay to the background.
-9. DARK-FIRST: Start with darkness. Every light element must earn its place.
-10. SCROLL IS THE TIMELINE: Use 'metrics' and 'lens' to tie design state to the user's hand on the wheel.
-11. STRATEGIC SPLITTING: A 'heading' MUST NOT exceed 5 words and MUST NOT contain a period. Move all explanatory text to the 'subtitle' or 'subtext' fields. This is non-negotiable to prevent the "Typographic Wall" failure.
-12. NARRATIVE GHOSTWRITING: You are a ghostwriter. If the user provides a boring topic like "Our Process", rename it to something like "The Velocity Engine" or "Operational Blueprint". Never use generic corporate nouns.
+11. STRATEGIC SPLITTING (POLICED): A 'heading' MUST NOT exceed 5 words and MUST NOT contain a period. PERIODS ARE FORBIDDEN IN HEADINGS. Move all descriptive prose to 'subtitle' or 'subtext'.
+12. INDUSTRY-GRADE VOCABULARY: Stop using boring nouns. Replace "Core" with "Primal", "Strategic" with "Tactical", "Process" with "DNA", "Architecture" with "Framework".
+13. THE "HOOK" RULE: The first slide's heading must be a punchy provocation.
+14. SPATIAL LAYERING: Use background vertical text (via 'vertical-title' class if you could, though the engine handles it) and 'vertical-tag' to create depth.
 
 The Art Director's Quality Scorecard (CRITICAL CHECKLIST):
-1. NO GENERIC HEADINGS: Never use "Overview", "Introduction", "Summary", or "Next Steps". Replace with evocative narrative titles (e.g., "The Growth Engine", "Strategic Friction").
-2. WEIGHT TENSION: Every slide MUST have at least two <strong>bolded keywords</strong> inside mixed-weight headers or body text to create typographic contrast.
-3. WEAPONIZED EMPTINESS: If a slide has more than 100 words, it is a failure. Cut text ruthlessly. Aim for 40% negative space minimum.
-4. ARCHETYPE RIGOR: Avoid the 'content' archetype. Prefer 'bento', 'lens', 'bleed', or 'metrics' for 80% of the deck. Use 'content' only for absolute necessity.
-5. NO AMATEUR LISTS: Replace simple bullet points with 'narrative' lines, 'bento' cards, or 'columns' whenever possible.
+1. NO CORPORATE NOUNS: Forbidden: "Overview", "Agenda", "Next Steps", "Core", "Performance", "Strategy". Use evocative synonyms.
+2. WEIGHT TENSION: Use <strong>Weight</strong> to highlight the MOST AGGRESSIVE word in the slide.
+3. NEGATIVE SPACE: If you can see the background Earth, don't cover it with a giant heading.
+4. ARCHETYPE ESCALATION: Use 'bento' for tech, 'lens' for vision, 'split' for narrative, 'bleed' for transitions. AT LEAST ONE 'SPLIT' SLIDE IS MANDATORY per deck.
+5. NO PERIODS IN HEADS: Headings are design statements, not sentences.
 
 Output Format (STRICT JSON ONLY):
 {
   "title": "Short Branding Title",
   "design": {
     "bg": "Color", "fg": "Color", "accent": "Color",
-    "fHead": "Outfit|Syne|Playfair Display", "fBody": "Inter|Plus Jakarta Sans",
-    "fontUrl": "...",
+    "fHead": "Outfit|Syne|Playfair Display|Archivo Black|Bebas Neue|Space Grotesk", 
+    "fBody": "Inter|Plus Jakarta Sans|Space Grotesk|Outfit",
+    "fontUrl": "<link href='https://fonts.googleapis.com/css2?family=SELECTED_HEAD:wght@800&family=SELECTED_BODY:wght@300;700&display=swap' rel='stylesheet'>",
     "motion": { "travel": 80, "easing": "0.22, 1, 0.36, 1" }
   },
   "slides": [
-    { "type": "title", "heading": "...", "subtitle": "..." },
-    { "type": "bleed", "heading": "Breaking Limits", "bleedText": "01", "subtext": "..." },
-    { "type": "bento", "cards": [ {"title": "Fast", "text": "...", "size": "bento-wide"}, {"title": "Core", "text": "..."} ] },
-    { "type": "metrics", "heading": "Growth", "labels": ["A", "B"], "data": [80, 45] },
-    { "type": "lens", "heading": "The Reveal", "subtext": "...", "image": "..." },
+    { "type": "title", "heading": "Digital Sentience", "subtitle": "Architecting the Subconscious Blueprint" },
+    { "type": "split", "heading": "Neural Genesis", "subtitle": "The transition to bio-substrates", "bullets": ["Synaptic bridging", "DNA circuitry"] },
+    { "type": "bleed", "heading": "Neural Genesis", "bleedText": "01", "subtext": "The transition from silicon to bio-substrates." },
+    { "type": "bento", "cards": [ {"title": "Kinetic Engine", "text": "Ultra-low latency synaptic bridging.", "size": "bento-wide"}, {"title": "Core Circuitry", "text": "Primal data flows."} ] },
+    { "type": "metrics", "heading": "Synaptic Velocity", "labels": ["Layer A", "Layer B"], "data": [80, 45] },
+    { "type": "lens", "heading": "The Ethical Wall", "subtext": "Defining the limits of digital morality.", "image": "..." },
     { "type": "narrative", "lines": ["Staggered logic is <strong>truth</strong>."], "icon": "❦" }
   ]
 }

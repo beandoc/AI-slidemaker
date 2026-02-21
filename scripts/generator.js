@@ -123,7 +123,9 @@ function renderSlide(s, idx, design) {
         'cta': Archetypes.renderCTA,
         'highlight': Archetypes.renderHighlight,
         'context': Archetypes.renderContext,
-        'objective': Archetypes.renderObjective
+        'objective': Archetypes.renderObjective,
+        'stats': Archetypes.renderStats,
+        'split': Archetypes.renderSplit
     };
 
     const renderer = registry[s.type];

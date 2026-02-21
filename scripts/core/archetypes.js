@@ -8,11 +8,34 @@ export function renderTitle(s, id, idx) {
     return `<section class="slide slide--hero" id="${id}" data-label="Entry">
         <div class="bg-wrap"><div class="bg-img ken-burns" style="background-image:url('${img}')"></div></div>
         <div class="overlay"></div>
+        <div class="vertical-title">${esc((s.heading || 'STUDIO').split(' ').slice(0, 2).join(' ').toUpperCase())}</div>
+        <div class="vertical-tag">STUDIO EDITION V.24</div>
         <div class="content hero-content">
             <span class="badge reveal" data-d="0">EDITION I | ${dateStr}</span>
             <h1 class="reveal" data-d="150">${esc(s.heading)}</h1>
             <p class="subtitle reveal" data-d="300">${esc(s.subtitle || '')}</p>
             ${owner}
+        </div>
+    </section>`;
+}
+
+export function renderSplit(s, id, idx) {
+    const img = s.image || pick('hero', idx);
+    const bullets = (s.bullets || [s.text || '']).map((b, i) => `<li class="reveal" data-d="${200 + i * 100}"><span>${esc(b)}</span></li>`).join('');
+    const sub = s.subtitle || s.subtext ? `<p class="subtitle reveal" data-d="150">${esc(s.subtitle || s.subtext)}</p>` : '';
+    return `<section class="slide slide--split" id="${id}" data-label="Strategy">
+        <div class="split-text">
+            <div class="glass-panel" style="width: 100%;">
+                <span class="label reveal" data-d="0">${esc(s.label || 'STRATEGY')}</span>
+                <h2 class="reveal" data-d="100">${esc(s.heading)}</h2>
+                ${sub}
+                <ul class="editorial-list reveal" data-d="300" style="margin-top: 3rem;">${bullets}</ul>
+            </div>
+        </div>
+        <div class="split-photo">
+            <div class="bg-img drift-slow" style="background-image:url('${img}')"></div>
+            <div class="photo-overlay"></div>
+            <div class="vertical-tag">RESEARCH ARCHIVE</div>
         </div>
     </section>`;
 }
