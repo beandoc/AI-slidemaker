@@ -44,7 +44,9 @@ Output format STRICTLY AS JSON:
                     role: 'user',
                     parts: [{ text: `System Instructions: ${systemPrompt}\n\nUser Content: ${prompt}` }]
                 }],
-                generationConfig: { responseMimeType: 'application/json' }
+                generation_config: {
+                    response_mime_type: 'application/json'
+                }
             })
         });
 
