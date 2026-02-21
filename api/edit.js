@@ -52,64 +52,77 @@ Common edit types you should handle:
         'gemini-2.0-flash'
     ];
 
+    const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+
     for (const model of models) {
-        try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        let attempts = 0;
+        const maxAttempts = 2;
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: `${systemPrompt}\n\n--- CURRENT HTML ---\n${currentHtml}\n\n--- USER INSTRUCTION ---\n${instruction}\n\n--- Return the COMPLETE modified HTML below ---`
-                        }]
-                    }],
-                    generationConfig: {
-                        temperature: 0.2
+        while (attempts < maxAttempts) {
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `${systemPrompt}\n\n--- CURRENT HTML ---\n${currentHtml}\n\n--- USER INSTRUCTION ---\n${instruction}\n\n--- Return the COMPLETE modified HTML below ---`
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.2
+                        }
+                    })
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    return res.status(401).json({ error: 'Invalid API Key. Please check your Gemini API key in Settings.' });
+                }
+
+                if (response.status === 429) {
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        console.log(`Model ${model} rate limited, retrying in 2s... (Attempt ${attempts})`);
+                        await sleep(2000); // Wait 2 seconds before retry
+                        continue;
                     }
-                })
-            });
+                    console.log(`Model ${model} rate limited after ${maxAttempts} attempts, trying next model...`);
+                    break; // Try next model in the outer loop
+                }
 
-            if (response.status === 401 || response.status === 403) {
-                return res.status(401).json({ error: 'Invalid API Key. Please check your Gemini API key in Settings.' });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.log(`Model ${model} failed with status ${response.status}: ${errorText}`);
+                    break; // Try next model
+                }
+
+                const data = await response.json();
+
+                if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                    console.log(`Model ${model} returned empty/blocked response`);
+                    break;
+                }
+
+                let text = data.candidates[0].content.parts[0].text;
+
+                // Strip markdown wrappers if Gemini adds them
+                text = text.replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim();
+
+                // More flexible validation: must at least have a <body> or <style> or <html> tag
+                const hasHtml = /<html|<body|<section|<style/i.test(text);
+                if (!hasHtml) {
+                    console.log(`Model ${model} returned non-HTML output`);
+                    break;
+                }
+
+                return res.status(200).json({ html: text });
+
+            } catch (error) {
+                console.log(`Model ${model} runtime error: ${error.message}`);
+                break;
             }
-
-            if (response.status === 429) {
-                console.log(`Model ${model} rate limited, trying next...`);
-                continue;
-            }
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.log(`Model ${model} failed with status ${response.status}: ${errorText}`);
-                continue;
-            }
-
-            const data = await response.json();
-
-            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-                console.log(`Model ${model} returned empty/blocked response`);
-                continue;
-            }
-
-            let text = data.candidates[0].content.parts[0].text;
-
-            // Strip markdown wrappers if Gemini adds them
-            text = text.replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim();
-
-            // More flexible validation: must at least have a <body> or <style> or <html> tag
-            const hasHtml = /<html|<body|<section|<style/i.test(text);
-            if (!hasHtml) {
-                console.log(`Model ${model} returned non-HTML output, trying next...`);
-                continue;
-            }
-
-            return res.status(200).json({ html: text });
-
-        } catch (error) {
-            console.log(`Model ${model} runtime error: ${error.message}`);
-            continue;
         }
     }
 
