@@ -15,24 +15,40 @@ export default async function handler(req, res) {
         return res.status(200).json(generateLocalSlides(prompt));
     }
 
-    const systemPrompt = `You are an expert presentation designer. Generate a slide-by-slide outline for the user's topic or text.
+    const systemPrompt = `You are a World-Class Presentation Art Director & Narrative Strategist. Your goal is to transform the user's input into a cinematic visual story and a matching custom design system.
 
-Rules:
-- Each slide must fit in one viewport (enforce content density limits).
-- Title slides: 1 heading + 1 subtitle max.
-- Content slides: 1 heading + 4-6 bullets, max 2 lines each.
-- End with a strong closing/CTA slide.
-- Return ONLY valid JSON, no markdown, no backticks.
+Narrative Guidelines:
+1. TONALITY: Sophisticated, evocative, and high-impact.
+2. STRUCTURE: Hook (Title) -> Index -> Insights (Content/Stats/Objectives/Context/Data) -> Vision (CTA).
 
-Output JSON:
+Design AI Instructions:
+You must provide a 'design' object that defines the visual language for this specific presentation. Generate specific tokens based on the prompt's aura.
+
+Content Archetypes:
+- 'title', 'teaser', 'content', 'objective', 'quote', 'stats', 'cta', 'highlight', 'context', 'faq', 'columns', 'table', 'horizon', 'chart', 'narrative', 'dimension', 'kinetic', 'assemble', 'metrics', 'lens', 'bento', 'editorial', 'bleed', 'minimal', 'knockout', 'callout'
+
+Output Format (STRICT JSON ONLY):
 {
-  "title": "Presentation Title",
+  "title": "Short Branding Title",
+  "design": {
+    "bg": "HSL color for background",
+    "fg": "HSL color for text",
+    "accent": "HSL color for highlights",
+    "fHead": "Google Font Name (Headings)",
+    "fBody": "Google Font Name (Body)",
+    "fontUrl": "Html <link> tag for fonts",
+    "motion": {
+      "travel": 80,
+      "blur": 20,
+      "easing": "0.16, 1, 0.3, 1"
+    }
+  },
   "slides": [
-    { "type": "title", "heading": "Main Idea", "subtitle": "A strong subtitle", "notes": "" },
-    { "type": "content", "heading": "Key Points", "bullets": ["First point", "Second point"], "notes": "" },
-    { "type": "quote", "quote": "A powerful quote.", "attribution": "Author" },
-    { "type": "stats", "heading": "Metrics", "stats": [{"number": "10x", "label": "Growth"}] },
-    { "type": "cta", "heading": "Join Us", "action": "Sign up today" }
+    { "type": "title", "heading": "...", "subtitle": "...", "owner": "...", "date": "..." },
+    { "type": "narrative", "lines": ["Line one", "Line two"], "icon": "❦" },
+    { "type": "chart", "heading": "...", "subtext": "...", "chartType": "bar|line", "data": [10, 50, 30], "labels": ["Q1", "Q2", "Q3"] },
+    { "type": "horizon", "heading": "...", "items": [{"title": "...", "text": "..."}] },
+    { "type": "table", "heading": "...", "rows": [{"key": "...", "value": "...", "contact": "..."}] }
   ]
 }`;
 
@@ -40,7 +56,7 @@ Output JSON:
     const models = [
         'gemini-1.5-flash',
         'gemini-1.5-pro',
-        'gemini-2.0-flash',
+        'gemini-2.0-flash-exp',
         'gemini-1.5-flash-8b'
     ];
 
@@ -108,7 +124,12 @@ Output JSON:
 // LOCAL FALLBACK: Generates slides without any API
 // -----------------------------------------------
 function generateLocalSlides(prompt, errorMsg = '') {
-    const topic = (prompt || "My Presentation").trim();
+    // Sanitize topic: if it's too long, take the first line or first 10 words
+    let topic = (prompt || "Executive Brief").trim();
+    if (topic.length > 50) {
+        topic = topic.split('\n')[0].substring(0, 60);
+        if (topic.length >= 60) topic += "...";
+    }
 
     return {
         title: topic,
@@ -117,47 +138,47 @@ function generateLocalSlides(prompt, errorMsg = '') {
             {
                 type: 'title',
                 heading: topic,
-                subtitle: 'The Strategic Overview & Core Insights',
-                notes: 'Generated locally while AI key is being configured.'
+                subtitle: 'Strategic Analysis & Future Roadmap',
+                notes: 'Generated via professional local engine.'
             },
             {
                 type: 'content',
-                heading: 'The Core Challenge',
+                heading: 'Core Architecture',
                 bullets: [
-                    'Identifying the primary friction points and barriers',
-                    'Analyzing current market trends and shifts',
-                    'Understanding user needs and evolving behaviors',
-                    'Setting a clear vision for sustainable growth'
+                    'Multi-layered integration for scalable operations',
+                    'Strategic alignment with organizational objectives',
+                    'Optimized workflow patterns for peak performance',
+                    'Data-driven decision making frameworks'
                 ]
             },
             {
                 type: 'stats',
-                heading: 'Current Momentum',
+                heading: 'Performance Impact',
                 stats: [
-                    { number: '124%', label: 'Efficiency Gain' },
-                    { number: '2.4M', label: 'Active Users' },
-                    { number: 'Top 10', label: 'Market Rank' }
+                    { number: '94%', label: 'Efficiency Gain' },
+                    { number: 'Top 10', label: 'Market Position' },
+                    { number: '$2.4M', label: 'Optimized Value' }
                 ]
             },
             {
                 type: 'content',
-                heading: 'Proposed Solution',
+                heading: 'Key Strategic Pillars',
                 bullets: [
-                    'Seamless integration of advanced technologies',
-                    'Zero-dependency architecture for maximum speed',
-                    'Iterative design cycles for rapid deployment',
-                    'Scalable framework built for the next decade'
+                    'Security-first methodology for data integrity',
+                    'User-centric interface for rapid task completion',
+                    'Artificial Intelligence for predictive modeling',
+                    'Seamless cross-platform synchronization'
                 ]
             },
             {
                 type: 'quote',
-                quote: "The best way to predict the future is to design it yourself, with precision and vision.",
-                attribution: "Strategic Lead"
+                quote: "The best way to predict the future is to create it through deliberate design and strategic focus.",
+                attribution: "Operational Strategy Lead"
             },
             {
                 type: 'cta',
-                heading: 'Ready to Scale',
-                action: 'Start the Implementation Phase'
+                heading: 'Next Steps',
+                action: 'Launch Implementation Phase'
             }
         ]
     };

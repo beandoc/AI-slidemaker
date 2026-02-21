@@ -4,85 +4,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Slidemaker — Zero-dependency HTML presentations</title>
-    <meta name="description"
-        content="Turn ideas into stunning, zero-dependency HTML presentations powered by Gemini AI.">
-    <!-- Fonts inside app.css -->
-    <link rel="stylesheet" href="styles/app.css">
-    <!-- Scripts -->
+    <title>Design Monster — AI Cinematic Presentations</title>
+    <link rel="stylesheet" href="styles/premium.css">
     <script type="module" src="scripts/main.js" defer></script>
 </head>
 
 <body>
+    <div class="mesh-bg"></div>
 
     <div class="container">
         <header>
             <div class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2" />
-                    <path d="M6 10h12M6 14h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="4" width="20" height="16" rx="3" stroke="currentColor" stroke-width="2.5" />
+                    <circle cx="12" cy="12" r="3" fill="currentColor" />
                 </svg>
-                AI <span>Slidemaker</span>
+                THE <span>DESIGN MONSTER</span>
             </div>
-            <div>
-                <button class="settings-btn" id="openSettingsBtn">⚙️ Settings</button>
-            </div>
+            <button class="btn-secondary" id="openSettingsBtn">⚙️ Studio Key</button>
         </header>
 
-        <div class="hero">
-            <h1>Zero-dependency presentations.<br>Generated in seconds.</h1>
-            <p>A premium slide generation tool with curated visual styles, viewport-perfect layouts, and pure HTML/CSS
-                output.</p>
-        </div>
+        <section class="hero">
+            <h1>Kill the Boring Slide.<br>Unleash the <span>Narrative.</span></h1>
+            <p>The world’s first co-evolutionary AI design engine. Cinematic scrolling, 3D dimension art, and custom
+                design tokens generated on the fly.</p>
+        </section>
 
-        <div class="app-grid">
-            <!-- Input Area -->
-            <div class="panel">
-                <h2>🧠 Content Outline or Prompt</h2>
-                <textarea id="promptInput" class="prompt-input"
-                    placeholder="Paste your notes, a topic, or bullet points here...&#10;&#10;E.g., 'Create a 5-slide pitch deck for a futuristic coffee machine that uses AI to blend beans.'"></textarea>
+        <div class="main-grid">
+            <!-- INPUT WING -->
+            <div class="glass-panel">
+                <div class="panel-title">🧠 Neural Input</div>
+                <textarea id="promptInput" style="height: 250px;"
+                    placeholder="Enter your narrative or topic...&#10;&#10;E.g., 'Post-human architecture in 2050. Focus on bio-luminescence and glass structures.'"></textarea>
 
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-                    PowerPoint conversion: Provide the text of your PowerPoint here for now, or use the Python script to
-                    extract.
-                </p>
+                <div style="height: 2rem;"></div>
+
+                <div class="panel-title">☄️ Visual Aura</div>
+                <textarea id="vibeInput" style="height: 120px;"
+                    placeholder="Describe the aesthetic aura... &#10;E.g., 'Cyber-noir, neon violet glows, heavy film grain, brutalist fonts.'"></textarea>
             </div>
 
-            <!-- Style Selection -->
-            <div class="panel">
-                <h2>🎨 Choose a Style</h2>
-                <!-- Style Grid populated by JS -->
-                <div class="style-grid" id="styleGrid"></div>
+            <!-- CONTROL WING -->
+            <div class="glass-panel">
+                <div class="panel-title">☄️ Studio Visual Auras</div>
+                <div class="style-grid" id="styleGrid">
+                    <!-- Loaded dynamically via scripts/main.js -->
+                </div>
 
-                <div style="margin-top: 2rem;">
-                    <!-- Error messages -->
+                <div style="margin-top: 4rem;">
                     <div id="errorBox"
-                        style="display: none; color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        style="display: none; color: #ff5555; background: rgba(255, 85, 85, 0.1); padding: 1rem; border-radius: 12px; margin-bottom: 2rem; font-size: 0.9rem;">
                     </div>
-                    <button class="btn" id="generateBtn">
-                        ✨ Generate Presentation
+
+                    <button class="btn-premium" id="generateBtn" style="width: 100%;">
+                        <span>Unleash Design Monster</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polyline>
+                        </svg>
                     </button>
+
+                    <p
+                        style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2rem; text-align: center; opacity: 0.6; letter-spacing: 0.05em;">
+                        AI ARCHITECT IS ONLINE | READY TO ASSEMBLE DNA
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal -->
-    <div class="modal-overlay" id="settingsModal">
-        <div class="modal">
-            <h3>API Configuration</h3>
-            <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">
-                Provide your Gemini API Key. It is stored securely in your browser's local storage and used directly to
-                generate content.
+    <!-- STUDIO KEY MODAL -->
+    <div class="modal-wrap" id="settingsModal">
+        <div class="glass-panel api-modal">
+            <div class="panel-title">Studio Authorization</div>
+            <p style="margin-bottom: 2rem; color: var(--text-muted); font-size: 0.95rem;">
+                Please provide your Gemini Studio Key to authorize the Neural Engine.
             </p>
-            <input type="password" id="apiKeyInput" placeholder="sk-..." />
-            <div class="modal-actions">
-                <button class="btn-ghost" id="cancelSettingsBtn">Cancel</button>
-                <button class="btn" id="saveSettingsBtn" style="width: auto;">Save</button>
+            <input type="password" id="apiKeyInput"
+                style="width:100%; padding:1.2rem; background:var(--bg-input); border:1px solid var(--border); border-radius:12px; color:#fff; font-family:monospace; margin-bottom:2.5rem;"
+                placeholder="STUDIO_KEY_..." />
+            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                <button class="btn-secondary" id="cancelSettingsBtn">Discard</button>
+                <button class="btn-premium" id="saveSettingsBtn" style="padding: 0.8rem 2rem;">Authorize</button>
             </div>
         </div>
     </div>
-
 </body>
 
 </html>

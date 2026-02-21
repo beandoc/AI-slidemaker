@@ -23,11 +23,11 @@ function init() {
     // Settings logic
     openSettingsBtn.addEventListener('click', () => {
         apiKeyInput.value = apiKey;
-        settingsModal.classList.add('open');
+        settingsModal.classList.add('active');
     });
 
     cancelSettingsBtn.addEventListener('click', () => {
-        settingsModal.classList.remove('open');
+        settingsModal.classList.remove('active');
     });
 
     saveSettingsBtn.addEventListener('click', () => {
@@ -37,7 +37,7 @@ function init() {
         } else {
             localStorage.removeItem('GEMINI_API_KEY');
         }
-        settingsModal.classList.remove('open');
+        settingsModal.classList.remove('active');
     });
 
     // Generate trigger
@@ -47,17 +47,17 @@ function init() {
 function renderStyles() {
     styleGrid.innerHTML = '';
     PRESETS.forEach(preset => {
-        const card = document.createElement('div');
-        card.className = `style-card ${preset.id === activeStyleId ? 'active' : ''}`;
-        card.innerHTML = `
-            <div class="style-name">${preset.name}</div>
-            <div class="style-desc">${preset.vibe}</div>
+        const chip = document.createElement('div');
+        chip.className = `style-chip ${preset.id === activeStyleId ? 'selected' : ''}`;
+        chip.innerHTML = `
+            <span class="chip-name">${preset.name}</span>
+            <span class="chip-vibe">${preset.vibe}</span>
         `;
-        card.addEventListener('click', () => {
+        chip.addEventListener('click', () => {
             activeStyleId = preset.id;
-            renderStyles(); // re-render to update active class
+            renderStyles();
         });
-        styleGrid.appendChild(card);
+        styleGrid.appendChild(chip);
     });
 }
 
@@ -70,8 +70,12 @@ function showError(msg) {
     errorBox.innerText = msg;
 }
 
+const vibeInput = document.getElementById('vibeInput');
+
 async function handleGenerate() {
     const prompt = promptInput.value.trim();
+    const vibe = vibeInput.value.trim();
+
     if (!prompt) {
         showError("Please enter some content or a topic.");
         return;
@@ -80,12 +84,17 @@ async function handleGenerate() {
     showError(null);
     const originalText = generateBtn.innerText;
     generateBtn.disabled = true;
-    generateBtn.innerText = "🧠 Planning Slides with Gemini...";
+    generateBtn.style.background = "linear-gradient(90deg, #ff0055, #7000ff)";
+    generateBtn.innerText = "👹 Monster is Designing...";
 
     try {
-        const outline = await generateOutline(prompt, apiKey);
+        // Find current preset name if user picked one
+        const preset = PRESETS.find(p => p.id === activeStyleId);
+        const combinedVibe = `${vibe} (Base Vibe: ${preset.name} - ${preset.vibe})`;
 
-        generateBtn.innerText = "🎨 Generating Layout & CSS...";
+        const outline = await generateOutline(prompt, apiKey, combinedVibe);
+
+        generateBtn.innerText = "⚡ Baking CSS & Motion...";
 
         const htmlContent = generateHTML(outline, activeStyleId);
 

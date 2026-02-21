@@ -4,588 +4,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Slidemaker — Editor</title>
-    <link rel="stylesheet" href="styles/app.css">
-    <!-- Export Libraries -->
+    <title>Design Monster Studio — Editor</title>
+    <link rel="stylesheet" href="styles/premium.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/2.8.0/dom-to-image-more.min.js"></script>
     <style>
-        .editor-container {
-            display: flex;
-            height: calc(100vh - 80px);
-            gap: 1rem;
-            margin: 0 auto;
-            max-width: 1600px;
-            padding: 0 1rem 1rem;
-        }
-
-        .preview-pane {
-            flex: 2;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            position: relative;
+        .studio-page {
+            height: 100vh;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        .preview-pane iframe {
+        .studio-header {
+            padding: 1.5rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .studio-main {
+            flex: 1;
+            padding: 0 2.5rem 2.5rem;
+        }
+
+        iframe {
             width: 100%;
             height: 100%;
             border: none;
-            background: white;
-            border-radius: var(--radius);
+            background: #fff;
         }
 
-        .sidebar {
-            flex: 1;
-            max-width: 400px;
-            min-width: 320px;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            overflow-y: auto;
-        }
-
-        /* ─────────── AI PROMPT BAR ─────────── */
-        .ai-panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .ai-panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #22d3ee, #a78bfa, #f472b6, #22d3ee);
-            background-size: 300% 100%;
-            animation: gradient-flow 4s ease infinite;
-        }
-
-        @keyframes gradient-flow {
-            0% {
-                background-position: 0% 50%;
-            }
-
-            50% {
-                background-position: 100% 50%;
-            }
-
-            100% {
-                background-position: 0% 50%;
-            }
-        }
-
-        .ai-panel-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .ai-panel-header .ai-icon {
-            width: 28px;
-            height: 28px;
-            background: linear-gradient(135deg, #22d3ee, #a78bfa);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        .ai-panel-header h3 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .ai-panel-header .beta-badge {
-            font-size: 0.6rem;
-            background: rgba(167, 139, 250, 0.2);
-            color: #a78bfa;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .ai-description {
-            font-size: 0.78rem;
+        .tab-btn {
+            background: transparent;
+            border: none;
             color: var(--text-muted);
-            margin-bottom: 0.75rem;
-            line-height: 1.4;
-        }
-
-        /* Suggestion chips */
-        .suggestion-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 0.75rem;
-        }
-
-        .chip {
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.72rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .chip-premium {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
             white-space: nowrap;
         }
 
-        .chip:hover {
+        .chip-premium:hover {
             border-color: var(--accent);
             color: var(--accent);
-            background: rgba(34, 211, 238, 0.08);
-            transform: translateY(-1px);
+            background: rgba(34, 211, 238, 0.05);
         }
 
-        .chip .chip-emoji {
-            margin-right: 3px;
-        }
-
-        /* Prompt input area */
-        .prompt-area {
-            display: flex;
-            gap: 0.5rem;
-            align-items: flex-end;
-        }
-
-        .prompt-area textarea {
-            flex: 1;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            font-family: inherit;
-            font-size: 0.85rem;
-            padding: 0.65rem 0.75rem;
-            border-radius: 10px;
-            resize: none;
-            outline: none;
-            min-height: 42px;
-            max-height: 100px;
-            line-height: 1.4;
-            transition: border-color 0.2s;
-        }
-
-        .prompt-area textarea:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
-        }
-
-        .prompt-area textarea::placeholder {
-            color: var(--text-muted);
-            opacity: 0.6;
-        }
-
-        .send-btn {
-            background: linear-gradient(135deg, #22d3ee, #06b6d4);
-            border: none;
-            color: #fff;
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            flex-shrink: 0;
-        }
-
-        .send-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.35);
-        }
-
-        .send-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .send-btn svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        /* Loading state */
-        .send-btn.loading {
-            position: relative;
-            pointer-events: none;
-        }
-
-        .send-btn.loading svg {
-            display: none;
-        }
-
-        .send-btn.loading::after {
-            content: '';
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Edit history */
-        .edit-history {
-            margin-top: 0.5rem;
-            max-height: 130px;
+        .history-list {
+            max-height: 200px;
             overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--border) transparent;
+            margin-top: 1rem;
         }
 
-        .edit-entry {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.5rem;
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(55, 65, 81, 0.3);
-            font-size: 0.72rem;
-            color: var(--text-muted);
-        }
-
-        .edit-entry:last-child {
-            border-bottom: none;
-        }
-
-        .edit-entry .edit-icon {
-            flex-shrink: 0;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
+        .history-item {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            margin-top: 1px;
-        }
-
-        .edit-entry .edit-icon.success {
-            background: rgba(16, 185, 129, 0.15);
-            color: #10b981;
-        }
-
-        .edit-entry .edit-icon.error {
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
-        }
-
-        .edit-entry .edit-text {
-            flex: 1;
-            line-height: 1.3;
-        }
-
-        .edit-entry .edit-text strong {
-            color: var(--text-main);
-            font-weight: 500;
-        }
-
-        .edit-entry .undo-link {
-            color: var(--accent);
-            cursor: pointer;
-            font-size: 0.68rem;
-            flex-shrink: 0;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-        }
-
-        .edit-entry .undo-link:hover {
-            opacity: 1;
-        }
-
-        /* ─────────── EXPORT PANEL ─────────── */
-        .export-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 1rem;
-        }
-
-        .export-actions h3 {
-            font-size: 0.95rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .btn-small {
-            padding: 0.5rem;
-            font-size: 0.85rem;
-        }
-
-        /* ─────────── CODE PANEL ─────────── */
-        .code-pane {
-            flex: 1;
-            min-height: 0;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .code-pane-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
-
-        .code-pane-header h3 {
-            font-size: 0.95rem;
-            margin: 0;
-        }
-
-        .toggle-code-btn {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            font-size: 0.7rem;
-            padding: 3px 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .toggle-code-btn:hover {
-            color: var(--text-main);
-            border-color: var(--text-main);
-        }
-
-        .code-editor {
-            flex: 1;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            color: #10b981;
-            font-family: 'SF Mono', 'Fira Code', monospace;
-            padding: 0.75rem;
-            border-radius: var(--radius);
-            resize: none;
-            outline: none;
+            gap: 1rem;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
             font-size: 0.8rem;
-            line-height: 1.4;
-            tab-size: 2;
-        }
-
-        .code-collapsed {
-            display: none;
-        }
-
-        /* ─────────── NOTIFICATION TOAST ─────────── */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 0.75rem 1.25rem;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            z-index: 1000;
-            opacity: 0;
-            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        .toast.success {
-            border-color: rgba(16, 185, 129, 0.4);
-        }
-
-        .toast.error {
-            border-color: rgba(239, 68, 68, 0.4);
-        }
-
-        /* ─────────── RESPONSIVE ─────────── */
-        @media (max-width: 900px) {
-            .editor-container {
-                flex-direction: column;
-                height: auto;
-            }
-
-            .preview-pane {
-                height: 50vh;
-            }
-
-            .sidebar {
-                max-width: 100%;
-                min-width: auto;
-            }
         }
     </style>
 </head>
 
-<body>
+<body class="studio-page">
+    <div class="mesh-bg"></div>
 
-    <header style="padding: 0.75rem 2rem; max-width: 1600px; margin: 0 auto;">
+    <header class="studio-header">
         <div class="logo">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2" />
-                <path d="M6 10h12M6 14h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <rect x="2" y="4" width="20" height="16" rx="3" stroke="currentColor" stroke-width="2.5" />
             </svg>
-            AI <span>Slidemaker</span> <span
-                style="font-size:0.8rem; font-weight: normal; margin-left: 1rem; color: var(--text-muted);">&mdash;
-                Editor</span>
+            STUDIO <span>EDITOR</span>
         </div>
-        <div>
-            <a href="index.html" class="settings-btn" style="text-decoration: none;">← Back to Generator</a>
-        </div>
+        <a href="index.html" class="btn-secondary" style="text-decoration: none;">← Exit Studio</a>
     </header>
 
-    <div class="editor-container">
-        <!-- Preview Pane -->
-        <div class="preview-pane">
-            <iframe id="previewFrame" title="Presentation Preview"></iframe>
-        </div>
+    <div class="studio-main">
+        <div class="studio-layout">
+            <!-- STAGE -->
+            <div class="preview-stage">
+                <iframe id="previewFrame"></iframe>
+            </div>
 
-        <!-- Sidebar -->
-        <div class="sidebar">
+            <!-- SIDEBAR -->
+            <div class="studio-sidebar">
+                <!-- AI CO-PILOT -->
+                <div class="glass-panel" style="padding: 2rem;">
+                    <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;">
+                        <span class="ai-pill">Neural Link</span>
+                        <h3 style="font-family: 'Outfit'; font-size: 1.1rem;">AI Architect</h3>
+                    </div>
 
-            <!-- ★ AI Prompt Bar ★ -->
-            <div class="ai-panel" id="aiPanel">
-                <div class="ai-panel-header">
-                    <div class="ai-icon">✨</div>
-                    <h3>AI Edit</h3>
-                    <span class="beta-badge">Beta</span>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                        Command the engine to restructure, re-style, or inject new DNA.
+                    </p>
+
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem;"
+                        id="suggestionChips">
+                        <span class="chip-premium" data-prompt="Change the font to premium serif like Playfair">Elegant
+                            Font</span>
+                        <span class="chip-premium" data-prompt="Add floaty kinetic particles to the background">Add
+                            Kinetic</span>
+                        <span class="chip-premium" data-prompt="Transform into a futuristic dark mode">Cyber Mode</span>
+                        <span class="chip-premium" data-prompt="Make all headings much larger and bolder">Big
+                            Headlines</span>
+                    </div>
+
+                    <div style="position: relative;">
+                        <textarea id="aiPromptInput"
+                            style="height: 48px; padding: 12px 60px 12px 15px; font-size: 0.9rem;"
+                            placeholder="Type command..."></textarea>
+                        <button id="aiSendBtn"
+                            style="position: absolute; right: 8px; top: 8px; background: var(--accent); color: #000; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="history-list" id="editHistory"></div>
                 </div>
 
-                <p class="ai-description">
-                    Describe what you want to change — content, style, fonts, images, colors — and AI will apply it
-                    instantly.
-                </p>
+                <!-- EXPORT HUB -->
+                <div class="glass-panel" style="padding: 2rem;">
+                    <div class="panel-title" style="margin-bottom: 1.5rem; font-size: 0.85rem;">Transmission Hub</div>
 
-                <div class="suggestion-chips" id="suggestionChips">
-                    <span class="chip" data-prompt="Change the font to Playfair Display, elegant serif">
-                        <span class="chip-emoji">🔤</span>Change Font
-                    </span>
-                    <span class="chip" data-prompt="Make it a dark theme with deep navy background and white text">
-                        <span class="chip-emoji">🌙</span>Dark Mode
-                    </span>
-                    <span class="chip" data-prompt="Make it a clean light theme with white background">
-                        <span class="chip-emoji">☀️</span>Light Mode
-                    </span>
-                    <span class="chip"
-                        data-prompt="Add a relevant high-quality background image from Unsplash to each slide">
-                        <span class="chip-emoji">🖼️</span>Add Images
-                    </span>
-                    <span class="chip" data-prompt="Use a vibrant gradient color scheme with purple and pink tones">
-                        <span class="chip-emoji">🎨</span>Vibrant Colors
-                    </span>
-                    <span class="chip" data-prompt="Make the text larger and bolder for better readability">
-                        <span class="chip-emoji">🔍</span>Bigger Text
-                    </span>
-                    <span class="chip" data-prompt="Add smooth slide-in animations to all elements">
-                        <span class="chip-emoji">🎬</span>Animations
-                    </span>
-                    <span class="chip" data-prompt="Make the design more professional and corporate">
-                        <span class="chip-emoji">💼</span>Professional
-                    </span>
-                    <span class="chip" data-prompt="Add a new slide with a comparison table or two-column layout">
-                        <span class="chip-emoji">📊</span>Add Slide
-                    </span>
-                    <span class="chip" data-prompt="Make it minimal — lots of whitespace, clean typography">
-                        <span class="chip-emoji">✂️</span>Minimal
-                    </span>
-                </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem;">
+                        <button class="btn-secondary" id="downloadHtmlBtn"
+                            style="padding: 0.6rem; font-size: 0.75rem;">HTML</button>
+                        <button class="btn-secondary" id="downloadPdfBtn"
+                            style="padding: 0.6rem; font-size: 0.75rem;">PDF</button>
+                        <button class="btn-secondary" id="downloadPngBtn"
+                            style="padding: 0.6rem; font-size: 0.75rem;">IMAGE</button>
+                    </div>
 
-                <div class="prompt-area">
-                    <textarea id="aiPromptInput" rows="1"
-                        placeholder="e.g. &quot;Change heading font to Montserrat&quot; or &quot;Add a slide about benefits&quot;"></textarea>
-                    <button class="send-btn" id="aiSendBtn" title="Apply edit">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="22" y1="2" x2="11" y2="13"></line>
-                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                        </svg>
+                    <button class="btn-premium" id="exportCanvaBtn"
+                        style="width: 100%; background: #00c4cc; color: #fff; box-shadow: none; font-size: 0.8rem; padding: 0.8rem;">
+                        <span>Export to Canva</span>
+                    </button>
+                    <div style="height: 0.5rem;"></div>
+                    <button class="btn-premium" id="exportFigmaBtn"
+                        style="width: 100%; background: #f24e1e; color: #fff; box-shadow: none; font-size: 0.8rem; padding: 0.8rem;">
+                        <span>Push to Figma</span>
                     </button>
                 </div>
 
-                <div class="edit-history" id="editHistory"></div>
-            </div>
-
-            <!-- Export Panel -->
-            <div class="export-actions">
-                <h3>Export</h3>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
-                    <button class="btn btn-small" id="downloadHtmlBtn">📄 HTML</button>
-                    <button class="btn btn-small" id="downloadPdfBtn">📕 PDF</button>
-                    <button class="btn btn-small" id="downloadSvgBtn">📐 SVG</button>
-                    <button class="btn btn-small" id="downloadPngBtn">🖼️ PNG</button>
-                    <button class="btn btn-small" style="background: var(--border); color: var(--text-main);"
-                        id="openNewTabBtn">🔍 Live</button>
+                <!-- SOURCE CODE -->
+                <div class="glass-panel" style="padding: 1.5rem; flex: 1; display: flex; flex-direction: column;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div class="panel-title" style="margin: 0; font-size: 0.85rem;">DNA Stream</div>
+                        <button class="tab-btn" id="toggleCodeBtn">Hide</button>
+                    </div>
+                    <textarea id="codeEditor"
+                        style="flex: 1; background: #000; border: none; font-family: 'DM Mono', monospace; font-size: 0.75rem; color: #22d3ee;"></textarea>
+                    <button class="btn-secondary" id="updatePreviewBtn"
+                        style="margin-top: 1rem; width: 100%; font-size: 0.8rem;">↻ Re-compile Stream</button>
                 </div>
-
-                <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                    <button class="btn btn-small" style="background: #00c4cc; color: #fff;" id="exportCanvaBtn">🖼️
-                        Export
-                        to Canva</button>
-                    <button class="btn btn-small" style="background: #f24e1e; color: #fff;" id="exportFigmaBtn">🎨 Push
-                        to
-                        Figma</button>
-                </div>
-
-                <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.2;">
-                    * Canva/Figma exports are currently in <strong>Developer Simulation</strong>. Real integration
-                    requires OAuth setup in production.
-                </p>
-            </div>
-
-            <!-- Code Pane (collapsible) -->
-            <div class="code-pane" id="codePaneWrap">
-                <div class="code-pane-header">
-                    <h3>Raw HTML</h3>
-                    <button class="toggle-code-btn" id="toggleCodeBtn">Hide</button>
-                </div>
-                <p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:0.5rem;">
-                    Edit HTML directly, or use the AI prompt above.
-                </p>
-                <textarea class="code-editor" id="codeEditor"></textarea>
-                <button class="btn btn-small" id="updatePreviewBtn" style="margin-top: 0.5rem;">↻ Update
-                    Preview</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast notification -->
-    <div class="toast" id="toast"></div>
+    <!-- Toast -->
+    <div class="premium-toast" id="toast"></div>
 
     <script type="module">
         import { exportToCanva } from './scripts/export/canva.js';
@@ -593,382 +198,100 @@
 
         // ─── State ───
         const generatedHTML = sessionStorage.getItem('LAST_GENERATED_PRESENTATION');
-        const outlineData = sessionStorage.getItem('LAST_OUTLINE');
-        const styleData = sessionStorage.getItem('LAST_STYLE');
-
-        let currentHtml = generatedHTML || '<h1>No presentation found</h1><p>Please generate one first.</p>';
-        let htmlHistory = [currentHtml]; // For undo
+        let currentHtml = generatedHTML || '<h1>No presentation found</h1>';
+        let htmlHistory = [currentHtml];
         let historyIndex = 0;
 
-        // ─── DOM Elements ───
+        // ─── DOM ───
         const previewFrame = document.getElementById('previewFrame');
         const codeEditor = document.getElementById('codeEditor');
-        const downloadHtmlBtn = document.getElementById('downloadHtmlBtn');
-        const openNewTabBtn = document.getElementById('openNewTabBtn');
-        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-        const downloadSvgBtn = document.getElementById('downloadSvgBtn');
-        const downloadPngBtn = document.getElementById('downloadPngBtn');
-        const exportCanvaBtn = document.getElementById('exportCanvaBtn');
-        const exportFigmaBtn = document.getElementById('exportFigmaBtn');
-        const updatePreviewBtn = document.getElementById('updatePreviewBtn');
-
         const aiPromptInput = document.getElementById('aiPromptInput');
         const aiSendBtn = document.getElementById('aiSendBtn');
         const editHistory = document.getElementById('editHistory');
-        const suggestionChips = document.getElementById('suggestionChips');
-        const toggleCodeBtn = document.getElementById('toggleCodeBtn');
         const toast = document.getElementById('toast');
 
-        // ─── Core Functions ───
         function updatePreview(html) {
             previewFrame.srcdoc = html;
             codeEditor.value = html;
             currentHtml = html;
         }
 
-        function pushToHistory(html) {
-            // Trim future entries if we're not at latest
-            if (historyIndex < htmlHistory.length - 1) {
-                htmlHistory = htmlHistory.slice(0, historyIndex + 1);
-            }
-            htmlHistory.push(html);
-            historyIndex = htmlHistory.length - 1;
-            // Limit history
-            if (htmlHistory.length > 20) {
-                htmlHistory.shift();
-                historyIndex--;
-            }
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        function showToast(message, type = 'success') {
-            toast.textContent = (type === 'success' ? '✅ ' : '⚠️ ') + message;
-            toast.className = `toast show ${type}`;
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
+        // --- Init ---
+        if (!generatedHTML) window.location.href = 'index.html';
+        else updatePreview(currentHtml);
 
-        function addHistoryEntry(instruction, success, idx) {
-            const entry = document.createElement('div');
-            entry.className = 'edit-entry';
-            entry.innerHTML = `
-                <div class="edit-icon ${success ? 'success' : 'error'}">${success ? '✓' : '✕'}</div>
-                <div class="edit-text">
-                    <strong>${escapeText(instruction.length > 60 ? instruction.substring(0, 60) + '…' : instruction)}</strong>
-                </div>
-                ${success ? `<span class="undo-link" data-idx="${idx}">Undo</span>` : ''}
-            `;
-            editHistory.prepend(entry);
-
-            // Undo handler
-            const undoLink = entry.querySelector('.undo-link');
-            if (undoLink) {
-                undoLink.addEventListener('click', () => {
-                    const targetIdx = parseInt(undoLink.dataset.idx);
-                    if (targetIdx >= 0 && targetIdx < htmlHistory.length) {
-                        historyIndex = targetIdx;
-                        updatePreview(htmlHistory[targetIdx]);
-                        showToast('Reverted to previous version');
-                    }
-                });
-            }
-        }
-
-        function escapeText(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
-        // ─── AI Edit ───
+        // --- AI Edit ---
         async function performAIEdit(instruction) {
-            if (!instruction.trim()) return;
+            if (!instruction) return;
+            const apiKey = localStorage.getItem('GEMINI_API_KEY');
+            if (!apiKey) {
+                showToast('🔑 Studio Key Required');
+                return;
+            }
 
-            aiSendBtn.classList.add('loading');
+            aiSendBtn.style.opacity = '0.5';
             aiSendBtn.disabled = true;
-            aiPromptInput.disabled = true;
 
             try {
-                const apiKey = localStorage.getItem('GEMINI_API_KEY') || '';
-
                 const response = await fetch('/api/edit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        currentHtml: currentHtml,
-                        instruction: instruction,
-                        apiKey: apiKey
-                    })
+                    body: JSON.stringify({ currentHtml, instruction, apiKey })
                 });
-
-                if (!response.ok) {
-                    let errorMsg = 'Edit failed';
-                    try {
-                        const errData = await response.json();
-                        errorMsg = errData.error || errorMsg;
-                    } catch (e) {
-                        errorMsg = await response.text();
-                    }
-                    throw new Error(errorMsg);
-                }
-
                 const data = await response.json();
-                const prevIdx = historyIndex;
+                if (data.html) {
+                    htmlHistory.push(data.html);
+                    historyIndex++;
+                    updatePreview(data.html);
+                    showToast('Neural Edit Applied');
 
-                pushToHistory(data.html);
-                updatePreview(data.html);
-
-                // Also update session storage so exports use the latest
-                sessionStorage.setItem('LAST_GENERATED_PRESENTATION', data.html);
-
-                addHistoryEntry(instruction, true, prevIdx);
-                showToast('Edit applied successfully!');
-                aiPromptInput.value = '';
-
-            } catch (err) {
-                addHistoryEntry(instruction, false, -1);
-                showToast(err.message, 'error');
-            } finally {
-                aiSendBtn.classList.remove('loading');
-                aiSendBtn.disabled = false;
-                aiPromptInput.disabled = false;
-                aiPromptInput.focus();
-            }
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    item.innerHTML = `<span>✓ ${instruction.substring(0, 30)}...</span>`;
+                    editHistory.prepend(item);
+                    aiPromptInput.value = '';
+                }
+            } catch (err) { showToast('Transmission Error'); }
+            finally { aiSendBtn.style.opacity = '1'; aiSendBtn.disabled = false; }
         }
 
-        // ─── Init ───
-        if (!generatedHTML) {
-            window.location.href = 'index.html';
-        } else {
-            updatePreview(currentHtml);
-        }
+        aiSendBtn.onclick = () => performAIEdit(aiPromptInput.value);
+        aiPromptInput.onkeydown = (e) => (e.key === 'Enter' && performAIEdit(aiPromptInput.value));
 
-        // ─── Event Listeners ───
-
-        // AI prompt submit
-        aiSendBtn.addEventListener('click', () => {
-            performAIEdit(aiPromptInput.value);
+        // Chips
+        document.querySelectorAll('.chip-premium').forEach(c => {
+            c.onclick = () => performAIEdit(c.dataset.prompt);
         });
 
-        aiPromptInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                performAIEdit(aiPromptInput.value);
-            }
-        });
-
-        // Auto-resize textarea
-        aiPromptInput.addEventListener('input', () => {
-            aiPromptInput.style.height = 'auto';
-            aiPromptInput.style.height = Math.min(aiPromptInput.scrollHeight, 100) + 'px';
-        });
-
-        // Suggestion chips
-        suggestionChips.addEventListener('click', (e) => {
-            const chip = e.target.closest('.chip');
-            if (chip) {
-                const prompt = chip.dataset.prompt;
-                aiPromptInput.value = prompt;
-                aiPromptInput.focus();
-                // Auto-submit
-                performAIEdit(prompt);
-            }
-        });
-
-        // Code toggle
-        let codeVisible = true;
-        toggleCodeBtn.addEventListener('click', () => {
-            codeVisible = !codeVisible;
-            codeEditor.classList.toggle('code-collapsed', !codeVisible);
-            document.querySelector('#codePaneWrap p').classList.toggle('code-collapsed', !codeVisible);
-            updatePreviewBtn.classList.toggle('code-collapsed', !codeVisible);
-            toggleCodeBtn.textContent = codeVisible ? 'Hide' : 'Show';
-        });
-
-        // Manual code update
-        updatePreviewBtn.addEventListener('click', () => {
-            const newHtml = codeEditor.value;
-            pushToHistory(newHtml);
-            updatePreview(newHtml);
-            sessionStorage.setItem('LAST_GENERATED_PRESENTATION', newHtml);
-            showToast('Preview updated from code');
-        });
+        // Direct code edit
+        document.getElementById('updatePreviewBtn').onclick = () => {
+            updatePreview(codeEditor.value);
+            showToast('Local Compilation Success');
+        };
 
         // Download
-        downloadHtmlBtn.addEventListener('click', () => {
-            const title = outlineData ? JSON.parse(outlineData).title || 'presentation' : 'presentation';
-            const filename = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.html';
-
+        document.getElementById('downloadHtmlBtn').onclick = () => {
             const blob = new Blob([currentHtml], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
+            const a = document.createElement('a'); a.href = url; a.download = 'presentation.html'; a.click();
+        };
 
-            setTimeout(() => {
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            }, 0);
-        });
-
-        // Open new tab
-        openNewTabBtn.addEventListener('click', () => {
-            const blob = new Blob([currentHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-        });
-
-        // ─── PDF Export ───
-        downloadPdfBtn.addEventListener('click', async () => {
-            downloadPdfBtn.innerText = "⏳ Rendering PDF...";
-            downloadPdfBtn.disabled = true;
-            try {
-                const { jsPDF } = window.jspdf;
-                const iframe = previewFrame.contentWindow.document.body;
-                const doc = new jsPDF({
-                    orientation: 'landscape',
-                    unit: 'px',
-                    format: [1920, 1080]
-                });
-
-                const slides = previewFrame.contentWindow.document.querySelectorAll('.slide');
-
-                for (let i = 0; i < slides.length; i++) {
-                    const canvas = await html2canvas(slides[i], {
-                        scale: 2,
-                        useCORS: true,
-                        allowTaint: true,
-                        logging: false
-                    });
-                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-
-                    if (i > 0) doc.addPage([1920, 1080], 'landscape');
-                    doc.addImage(imgData, 'JPEG', 0, 0, 1920, 1080);
-                }
-
-                doc.save(`presentation-${Date.now()}.pdf`);
-                showToast('PDF Exported Successfully!');
-            } catch (err) {
-                console.error(err);
-                showToast('PDF Export Failed', 'error');
-            } finally {
-                downloadPdfBtn.innerText = "📕 PDF";
-                downloadPdfBtn.disabled = false;
-            }
-        });
-
-        // ─── PNG Export ───
-        downloadPngBtn.addEventListener('click', async () => {
-            downloadPngBtn.innerText = "⏳ Snapshots...";
-            downloadPngBtn.disabled = true;
-            try {
-                const zip = new JSZip();
-                const slides = previewFrame.contentWindow.document.querySelectorAll('.slide');
-
-                for (let i = 0; i < slides.length; i++) {
-                    const canvas = await html2canvas(slides[i], { scale: 2 });
-                    const imgData = canvas.toDataURL('image/png').split(',')[1];
-                    zip.file(`slide-${i + 1}.png`, imgData, { base64: true });
-                }
-
-                const content = await zip.generateAsync({ type: "blob" });
-                const url = URL.createObjectURL(content);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `slides-png-${Date.now()}.zip`;
-                a.click();
-
-                showToast('PNG ZIP Exported!');
-            } catch (err) {
-                console.error(err);
-                showToast('PNG Export Failed', 'error');
-            } finally {
-                downloadPngBtn.innerText = "🖼️ PNG";
-                downloadPngBtn.disabled = false;
-            }
-        });
-
-        // ─── SVG Export ───
-        downloadSvgBtn.addEventListener('click', async () => {
-            downloadSvgBtn.innerText = "⏳ Vectorizing...";
-            downloadSvgBtn.disabled = true;
-            try {
-                // We'll export the CURRENTLY VISIBLE slide
-                const slides = previewFrame.contentWindow.document.querySelectorAll('.slide');
-                const currentIndex = previewFrame.contentWindow.slideshow?.current || 0;
-                const targetNode = slides[currentIndex] || slides[0];
-
-                // Ensure we capture the computed styles within the iframe
-                const dataUrl = await domtoimage.toSvg(targetNode, {
-                    width: 1920,
-                    height: 1080,
-                    bgcolor: '#ffffff',
-                    quality: 1.0,
-                    cacheBust: true,
-                    style: {
-                        transform: 'none',
-                        left: '0',
-                        top: '0',
-                        visibility: 'visible'
-                    }
-                });
-
-                const link = document.createElement('a');
-                link.download = `slide-${currentIndex + 1}.svg`;
-                link.href = dataUrl;
-                link.click();
-
-                showToast('SVG Vector Exported! Drag into Canva.');
-            } catch (err) {
-                console.error(err);
-                showToast('SVG Export Failed', 'error');
-            } finally {
-                downloadSvgBtn.innerText = "📐 SVG";
-                downloadSvgBtn.disabled = false;
-            }
-        });
-
-        // Canva export
-        exportCanvaBtn.addEventListener('click', async () => {
-            exportCanvaBtn.innerText = "⏳ Exporting...";
-            exportCanvaBtn.disabled = true;
-            try {
-                const parsed = outlineData ? JSON.parse(outlineData) : null;
-                const fakeAuth = { accessToken: "canva_mock_token_123" };
-                const res = await exportToCanva(parsed, fakeAuth);
-                alert(res.message + `\nWould redirect to: ${res.designUrl}`);
-            } catch (err) {
-                alert("Error: " + err.message);
-            } finally {
-                exportCanvaBtn.innerText = "🖼️ Export to Canva...";
-                exportCanvaBtn.disabled = false;
-            }
-        });
-
-        // Figma export
-        exportFigmaBtn.addEventListener('click', async () => {
-            exportFigmaBtn.innerText = "⏳ Exporting...";
-            exportFigmaBtn.disabled = true;
-            try {
-                const parsed = outlineData ? JSON.parse(outlineData) : null;
-                const fakeAuth = { personalAccessToken: "figma_mock_pat_123" };
-                const fileId = prompt("Enter Figma File ID (e.g. j1l2k3j1l23j12l3j):", "mock_file_id");
-
-                if (fileId) {
-                    const res = await exportToFigma(parsed, fakeAuth, fileId);
-                    alert(res.message + `\nData has been pushed for File ID: ${fileId}`);
-                }
-            } catch (err) {
-                alert("Error: " + err.message);
-            } finally {
-                exportFigmaBtn.innerText = "🎨 Push to Figma...";
-                exportFigmaBtn.disabled = false;
-            }
-        });
+        // Canva/Figma placeholders
+        document.getElementById('exportCanvaBtn').onclick = () => {
+            showToast('Simulating Canva Export...');
+            setTimeout(() => exportToCanva(currentHtml), 1000);
+        };
+        document.getElementById('exportFigmaBtn').onclick = () => {
+            showToast('Simulating Figma Push...');
+            setTimeout(() => exportToFigma(currentHtml), 1000);
+        };
     </script>
-
 </body>
 
 </html>
