@@ -105,6 +105,10 @@ Output Format (STRICT JSON ONLY):
             }
 
             let text = data.candidates[0].content.parts[0].text;
+            if (!text) {
+                console.log(`Model ${model} returned empty text parts`);
+                continue;
+            }
             text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
 
             return res.status(200).json(JSON.parse(text));

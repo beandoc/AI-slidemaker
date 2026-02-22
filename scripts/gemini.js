@@ -72,10 +72,16 @@ export async function generateOutline(prompt, apiKey, vibe = "") {
   }
 
   const data = await response.json();
-  let text = isProxy ? data.text : data.candidates[0].part.text;
 
-  // Clean JSON markdown if present
+  if (isProxy) {
+    // The proxy already parses the JSON and returns the object
+    return data;
+  }
+
+  let text = data.candidates[0].content.parts[0].text;
+  if (!text) {
+    throw new Error("Gemini returned an empty response. This might be due to safety filters.");
+  }
   text = text.replace(/```json\n?/, '').replace(/\n?```/, '');
-
   return JSON.parse(text);
 }

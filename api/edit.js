@@ -118,6 +118,10 @@ Common edit types you should handle:
                 }
 
                 let text = data.candidates[0].content.parts[0].text;
+                if (!text) {
+                    console.log(`Model ${model} returned empty text parts`);
+                    continue;
+                }
 
                 // Strip markdown wrappers if Gemini adds them
                 text = text.replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim();
