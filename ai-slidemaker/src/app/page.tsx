@@ -319,6 +319,57 @@ export default function AppHome() {
                     />
                   )}
 
+                  {activeSlide.type === 'bleed' && (
+                    <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none">
+                      <span className="text-[30rem] font-black text-white/[0.03] select-none uppercase tracking-tighter">
+                        {activeSlide.content.bleedText || '01'}
+                      </span>
+                    </div>
+                  )}
+
+                  {activeSlide.type === 'lens' && activeSlide.content.imagePath && (
+                    <div className="absolute inset-0 z-0">
+                      <Image
+                        src={activeSlide.content.imagePath}
+                        fill
+                        className="object-cover opacity-20"
+                        alt="Lens Background"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-[#0d0f14] via-transparent to-[#0d0f14]" />
+                    </div>
+                  )}
+
+                  {activeSlide.type === 'metrics' && (
+                    <div className="grid grid-cols-2 gap-12 w-full max-w-4xl mx-auto mt-12 text-left">
+                      {(activeSlide.content.data || [80, 65, 90, 45]).map((v, i) => (
+                        <div key={i} className="space-y-2">
+                          <div className="flex justify-between text-xs font-bold tracking-widest text-slate-500 uppercase">
+                            <span>{activeSlide.content.labels?.[i] || `Metric ${i + 1}`}</span>
+                            <span style={{ color: 'var(--accent-color)' }}>{v}%</span>
+                          </div>
+                          <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${v}%` }}
+                              className="h-full"
+                              style={{ backgroundColor: 'var(--accent-color)' }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {activeSlide.type === 'narrative' && (
+                    <div className="text-4xl md:text-6xl font-bold leading-tight tracking-tight text-white/90 max-w-4xl mx-auto mt-8">
+                      {(activeSlide.content.lines || ['Visionary Thinking', 'Architectural Depth']).map((line, i) => (
+                        <div key={i} className="mb-2 italic opacity-80">
+                          {line}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {activeSlide.type === 'content' && activeSlide.content.bullets && (
                     <ul className="text-left max-w-2xl mx-auto space-y-4 mt-8">
                       {activeSlide.content.bullets.map((b, idx) => {
@@ -352,19 +403,57 @@ export default function AppHome() {
                     </ul>
                   )}
 
-                  {activeSlide.type === 'feature-grid' && activeSlide.content.bullets && (
-                    <div className="grid grid-cols-2 gap-4 mt-12 max-w-4xl mx-auto">
+                  {(activeSlide.type === 'feature-grid' || activeSlide.type === 'bento') && activeSlide.content.bullets && (
+                    <div className={`grid ${activeSlide.type === 'bento' ? 'grid-cols-3 grid-rows-2' : 'grid-cols-2'} gap-4 mt-12 max-w-4xl mx-auto w-full`}>
                       {activeSlide.content.bullets.map((b, idx) => {
                         const bulletText = typeof b === 'string' ? b : b.text;
+                        const bulletSize = typeof b === 'object' ? b.size : '';
                         const BulletIcon = typeof b === 'object' && b.icon ? getLucideIcon(b.icon) : null;
 
+                        const gridClasses = bulletSize === 'bento-wide' ? 'col-span-2' : bulletSize === 'bento-tall' ? 'row-span-2' : '';
+
                         return (
-                          <div key={idx} className="p-8 rounded-2xl bg-white/[0.02] border border-white/5 text-slate-300 text-lg font-medium text-center flex flex-col items-center gap-4">
-                            {BulletIcon && <div style={{ color: 'var(--accent-color)' }}><BulletIcon size={32} /></div>}
-                            {bulletText}
+                          <div key={idx} className={`p-8 rounded-3xl bg-white/[0.02] border border-white/5 text-slate-300 text-lg font-medium text-center flex flex-col items-center justify-center gap-4 transition-all hover:bg-white/[0.04] hover:border-white/10 ${gridClasses}`}>
+                            {BulletIcon && <div style={{ color: 'var(--accent-color)' }}><BulletIcon size={32} strokeWidth={1.5} /></div>}
+                            <span className="text-base opacity-80 leading-relaxed">{bulletText}</span>
                           </div>
                         );
                       })}
+                    </div>
+                  )}
+
+                  {activeSlide.type === 'quote' && (
+                    <div className="max-w-4xl mx-auto mt-12 space-y-6">
+                      <div className="text-4xl md:text-5xl font-serif italic text-white/90 leading-tight">
+                        "{activeSlide.content.quote || 'Quality is not an act, it is a habit.'}"
+                      </div>
+                      <div className="text-xl font-bold tracking-widest uppercase opacity-40">
+                        — {activeSlide.content.attribution || 'Aristotle'}
+                      </div>
+                    </div>
+                  )}
+
+                  {activeSlide.type === 'stats' && (
+                    <div className="grid grid-cols-3 gap-8 mt-16 w-full max-w-4xl mx-auto">
+                      {(activeSlide.content.stats || [{ number: '10x', label: 'Velocity' }, { number: '0', label: 'Dependencies' }, { number: '100%', label: 'Native' }]).map((stat, i) => (
+                        <div key={i} className="p-8 rounded-3xl bg-white/[0.02] border border-white/5">
+                          <div className="text-5xl font-black mb-2" style={{ color: 'var(--accent-color)' }}>{stat.number}</div>
+                          <div className="text-xs font-bold tracking-[0.2em] uppercase opacity-40">{stat.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {activeSlide.type === 'cta' && (
+                    <div className="mt-16">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-12 py-5 rounded-full font-black tracking-widest uppercase text-black transition-all shadow-[0_20px_50px_rgba(56,189,248,0.3)]"
+                        style={{ backgroundColor: 'var(--accent-color)' }}
+                      >
+                        {activeSlide.content.action || 'Get Started'}
+                      </motion.button>
                     </div>
                   )}
 

@@ -11,7 +11,12 @@ export type SlideLayout =
     | 'cta'
     | 'split'
     | 'feature-grid'
-    | 'image';
+    | 'image'
+    | 'bleed'
+    | 'lens'
+    | 'metrics'
+    | 'narrative'
+    | 'bento';
 
 export interface StatItem {
     number: string;
@@ -28,6 +33,7 @@ export interface BrandAsset {
 export interface BulletPoint {
     text: string;
     icon?: string;
+    size?: string; // e.g. 'bento-wide', 'bento-tall'
 }
 
 export interface SlideContent {
@@ -43,6 +49,12 @@ export interface SlideContent {
     icon?: string;
     customIconUrl?: string; // For uploaded brand icons/logos
     notes?: string;
+    // New Cinematic properties
+    bleedText?: string;
+    subtext?: string;
+    data?: number[];
+    labels?: string[];
+    lines?: string[];
 }
 
 export interface SlideAST {
@@ -91,7 +103,7 @@ export const useEditorStore = create<EditorState>()(
 
             cycleLayout: (slideId: string) => set((state: EditorState) => {
                 if (!state.presentation) return state;
-                const layouts: SlideLayout[] = ['title', 'content', 'stats', 'feature-grid', 'quote', 'cta'];
+                const layouts: SlideLayout[] = ['title', 'content', 'stats', 'feature-grid', 'quote', 'cta', 'split', 'bleed', 'lens', 'metrics', 'narrative', 'bento'];
 
                 return {
                     presentation: {

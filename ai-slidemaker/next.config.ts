@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'source.unsplash.com' },
     ],
   },
+  // @ts-ignore
+  turbopack: {
+    root: typeof process !== 'undefined' ? process.cwd() : '.',
+  },
 };
 
 export default nextConfig;
