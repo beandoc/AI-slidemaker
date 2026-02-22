@@ -1,84 +1,102 @@
 import { NextResponse } from 'next/server';
 
 const SYSTEM_PROMPT = `
-You are a World-Class Presentation Art Director & Narrative Strategist. Your goal is to transform the user's input into a high-end, Cinematic Scrollable Document (similar to a Canva Doc or a luxury agency landing page).
+You are the World-Class Lead Architect for "Antigravity OS".
+Your goal: Transform user input into a validated, hierarchical JSON Scene AST.
 
-// Narrative Guidelines:
-1. THINK IN CONTINUUM: This is not a slide deck. It is one fluid story. Every section must transition logically into the next.
-2. NARRATIVE ARC: Start with a punchy "provocation" (Hero), follow with "Tactical Evidence" (Bento/Metrics), and end with a "High-Impact Vision" (Lens/CTA).
-3. VARIABLE RHYTHM: Mix short, punchy transition sections (Bleed) with deep, explanatory sections (Content/Bento).
-4. EDITORIAL BREATHING: Every section should have massive vertical breathing room (padding). The scroll is the timeline.
-5. ATMOSPHERIC DEPTH: Use background textures, noise grain, and mesh gradients to create a "Rich Document" feel.
+// STRUCTURAL DNA (Mandatory Composition Rules):
+1. 'hero': REQUIRES centered blocks (textAlign: center). Max 2 blocks. Large font weights.
+2. 'split': REQUIRES exactly 2 columns. Block 0 (even) goes Left, Block 1 (odd) goes Right. Perfect for Image + Text pairs.
+3. 'bento': REQUIRES a 3-column grid. The first block must be 'hero-sized' (mentally). Used for feature sets or metrics.
+4. 'vision': Full bleed background with a single high-impact quote or KPI.
 
-// Design Guidelines & Safety Nets:
-1. THE 5-WORD RULE: A 'heading' MUST NOT exceed 5 words and MUST NOT contain a period. PERIODS ARE FORBIDDEN IN HEADINGS. Move all descriptive prose to 'subtitle' or 'subtext'.
-2. WEIGHT TENSION: Use mixed weights (200/900). Wrap keywords in <strong> to create contrast.
-3. WHISPER BORDERS: Use 1px borders with 0.08 opacity for all cards and panels.
-4. SPATIAL LAYERING: Use background vertical text and metadata tags to create 3D depth.
-5. INDUSTRY-GRADE VOCABULARY: Stop using boring nouns. Replace "Core" with "Primal", "Strategic" with "Tactical", "Process" with "DNA", "Architecture" with "Framework".
+// DESIGN ARCHETYPES:
+1. 'neon-cyber': Technical, glow, dark. Layouts should feel like a HUD.
+2. 'editorial-ledger': Clean, white, massive typography. High-contrast.
+3. 'split-rail': Focused on horizontal split layout divergence.
+4. 'card-mosaic': Deep usage of bento grids and layered cards.
+5. 'minimal-columns': Multi-column text focus, vertical breathing room.
+6. 'glass-aero': Modern, soft, blurry.
+7. 'brutalist-signal': Raw, heavy borders, loud.
 
-Archetype Definitions:
-- 'title': Hero section. { heading, subtitle, icon }
-- 'split': 50/50 split. { heading, subtitle, bullets: [{text, icon}] }
-- 'bleed': Transition. { heading, subtext, bleedText: "01" }
-- 'bento': Grid. { heading, bullets: [{text, icon, size: "bento-wide"|"bento-tall"}] }
-- 'metrics': Stats/Progress. { heading, labels: [], data: [number] }
-- 'lens': Visionary reveal. { heading, subtext, imagePath }
-- 'narrative': Flowing text. { lines: [string] }
-- 'quote': Impactful quote. { quote, attribution }
-- 'cta': Call to action. { heading, action }
-
-The Art Director's Quality Scorecard (CRITICAL CHECKLIST):
-1. NO CORPORATE NOUNS: Forbidden: "Overview", "Agenda", "Next Steps", "Core", "Performance", "Strategy".
-2. NO PERIODS IN HEADS: Headings are design statements, not sentences.
-3. NEGATIVE SPACE: Use immense vertical padding between headline and content.
-4. ARCHETYPE ESCALATION: Use 'bento' for tech, 'lens' for vision, 'split' for narrative, 'bleed' for transitions. AT LEAST ONE 'SPLIT' SECTION IS MANDATORY.
-
-Output Format (STRICT JSON ONLY):
+// OUTPUT FORMAT (STRICT SCENE AST v2.0):
 {
-  "title": "Short Branding Title",
-  "theme": "neon-cyber" | "bold-signal" | "corporate-sharp",
-  "slides": [
-    { "id": "s1", "type": "title", "content": { "heading": "...", "subtitle": "..." } },
+  "id": "scene_...",
+  "version": "2.0",
+  "title": "...",
+  "config": {
+    "archetype": "neon-cyber" | "editorial-ledger" | "split-rail" | "card-mosaic" | "minimal-columns" | "glass-aero" | "brutalist-signal",
+    "theme": { ... },
     ...
-  ]
+  },
+  "sections": [...]
 }
+
+MISSION: Never repeat the same layoutId twice in a row.
 `;
 
+const FALLBACK_SCENES: Record<string, any> = {
+  'default': {
+    title: "Deterministic Blueprint",
+    config: {
+      archetype: "editorial-ledger",
+      theme: { primary: "#000000", secondary: "#f0f0f0", accent: "#000000", background: "#ffffff", foreground: "#000000", fonts: { headline: "Playfair Display", body: "Inter" } },
+      typography: { baseSize: 16, scaleRatio: 1.25 },
+      motion: { enabled: true, reducedMotion: false }
+    },
+    sections: [
+      { id: "s1", layoutId: "hero", blocks: [{ id: "b1", type: "text", data: { content: "FALLBACK ENGINE", tag: "h1" }, style: { textAlign: "center", fontWeight: 900 } }], background: { type: "color", value: "#ffffff", opacity: 1 } }
+    ]
+  }
+};
+
 export async function POST(req: Request) {
-    try {
-        const body = await req.json();
-        const prompt = body.prompt;
-        const apiKey = body.apiKey || process.env.GEMINI_API_KEY;
+  try {
+    const body = await req.json();
+    const prompt = body.prompt || "";
+    const apiKey = body.apiKey || process.env.GEMINI_API_KEY;
 
-        if (!apiKey) {
-            return NextResponse.json({ error: "No Gemini API Key found. Add GEMINI_API_KEY to your env." }, { status: 400 });
-        }
-
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
-
-        const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-                generationConfig: { responseMimeType: "application/json" }
-            })
-        });
-
-        if (!response.ok) {
-            const err = await response.text();
-            return NextResponse.json({ error: `API Error: ${response.status} - ${err}` }, { status: response.status });
-        }
-
-        const data = await response.json();
-        const text = data.candidates[0].content.parts[0].text;
-        const jsonAST = JSON.parse(text);
-
-        return NextResponse.json({ data: jsonAST });
-    } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Failed to parse API response";
-        return NextResponse.json({ error: message }, { status: 500 });
+    if (!apiKey) {
+      return NextResponse.json({
+        data: FALLBACK_SCENES.default,
+        warning: "STRICT WARNING: No Gemini API Key found. Falling back to local deterministic blueprint. Your composition will be static."
+      });
     }
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        generationConfig: { responseMimeType: "application/json" }
+      })
+    });
+
+    if (!response.ok) {
+      return NextResponse.json({
+        data: FALLBACK_SCENES.default,
+        warning: `API Error: ${response.status}. Using fallback blueprint.`
+      });
+    }
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
+    const jsonAST = JSON.parse(text);
+
+    // Archetype Normalization
+    const validArchetypes = ['neon-cyber', 'editorial-ledger', 'split-rail', 'card-mosaic', 'minimal-columns', 'glass-aero', 'brutalist-signal'];
+    if (!validArchetypes.includes(jsonAST.config?.archetype)) {
+      jsonAST.config = { ...jsonAST.config, archetype: 'neon-cyber' };
+    }
+
+    return NextResponse.json({ data: jsonAST });
+  } catch (error: unknown) {
+    return NextResponse.json({
+      data: FALLBACK_SCENES.default,
+      warning: "Generation failed. Using local fallback."
+    });
+  }
 }

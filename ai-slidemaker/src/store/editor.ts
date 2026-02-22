@@ -1,153 +1,199 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-// Types defining the JSON Abstract Syntax Tree (AST)
-
-export type SlideLayout =
-    | 'title'
-    | 'content'
-    | 'quote'
-    | 'stats'
-    | 'cta'
-    | 'split'
-    | 'feature-grid'
-    | 'image'
-    | 'bleed'
-    | 'lens'
-    | 'metrics'
-    | 'narrative'
-    | 'bento';
-
-export interface StatItem {
-    number: string;
-    label: string;
-}
-
-export interface BrandAsset {
-    id: string;
-    name: string;
-    type: 'logo' | 'icon' | 'image';
-    url: string;
-}
-
-export interface BulletPoint {
-    text: string;
-    icon?: string;
-    size?: string; // e.g. 'bento-wide', 'bento-tall'
-}
-
-export interface SlideContent {
-    heading?: string;
-    subtitle?: string;
-    bullets?: (string | BulletPoint)[];
-    quote?: string;
-    attribution?: string;
-    stats?: StatItem[];
-    action?: string;
-    imagePath?: string;
-    imagePrompt?: string;
-    icon?: string;
-    customIconUrl?: string; // For uploaded brand icons/logos
-    notes?: string;
-    // New Cinematic properties
-    bleedText?: string;
-    subtext?: string;
-    data?: number[];
-    labels?: string[];
-    lines?: string[];
-}
-
-export interface SlideAST {
-    id: string;
-    type: SlideLayout;
-    content: SlideContent;
-}
-
-export interface PresentationAST {
-    title: string;
-    theme: string;
-    slides: SlideAST[];
-    assets: BrandAsset[];
-    accentColor?: string;
-}
-
-// ------------------------------------
-// Global State Store
-// ------------------------------------
+import { temporal } from 'zundo';
+import { SceneAST, Section, Block, DocumentConfig, Asset } from './editor-types';
 
 interface EditorState {
-    presentation: PresentationAST | null;
-    activeSlideId: string | null;
+    ast: SceneAST | null;
+    activeSectionId: string | null;
+    activeBlockId: string | null;
+    isEditMode: boolean;
 
-    // Actions
-    setPresentation: (data: PresentationAST) => void;
-    setActiveSlide: (id: string) => void;
-    cycleLayout: (slideId: string) => void;
-    updateSlideContent: (slideId: string, partialContent: Partial<SlideContent>) => void;
-    updateTheme: (partialTheme: Partial<PresentationAST>) => void;
-    addAsset: (asset: BrandAsset) => void;
+    // --- Actions ---
+    setAst: (ast: SceneAST) => void;
+    setActiveSection: (id: string | null) => void;
+    setActiveBlock: (id: string | null) => void;
+    toggleEditMode: () => void;
+
+    // --- Scene Operations ---
+    updateConfig: (config: Partial<DocumentConfig>) => void;
+
+    // --- Section Operations ---
+    addSection: (section: Section, index?: number) => void;
+    removeSection: (id: string) => void;
+    updateSection: (id: string, updates: Partial<Section>) => void;
+    reorderSections: (newOrder: string[]) => void;
+
+    // --- Block Operations ---
+    addBlock: (sectionId: string, block: Block, index?: number) => void;
+    removeBlock: (sectionId: string, blockId: string) => void;
+    updateBlock: (sectionId: string, blockId: string, updates: Partial<Block>) => void;
+    reorderBlocks: (sectionId: string, newOrder: string[]) => void;
+
+    // --- Asset Operations ---
+    addAsset: (asset: Asset) => void;
+    removeAsset: (id: string) => void;
 }
 
 export const useEditorStore = create<EditorState>()(
-    persist(
-        (set) => ({
-            presentation: null,
-            activeSlideId: null,
+    temporal(
+        persist(
+            (set) => ({
+                ast: null,
+                activeSectionId: null,
+                activeBlockId: null,
+                isEditMode: true,
 
-            setPresentation: (data: PresentationAST) => set({
-                presentation: data,
-                activeSlideId: data.slides.length > 0 ? data.slides[0].id : null
-            }),
+                setAst: (ast) => set({
+                    ast,
+                    activeSectionId: ast.sections.length > 0 ? ast.sections[0].id : null
+                }),
 
-            setActiveSlide: (id: string) => set({ activeSlideId: id }),
+                setActiveSection: (id) => set({ activeSectionId: id, activeBlockId: null }),
+                setActiveBlock: (id) => set({ activeBlockId: id }),
+                toggleEditMode: () => set((state) => ({ isEditMode: !state.isEditMode })),
 
-            cycleLayout: (slideId: string) => set((state: EditorState) => {
-                if (!state.presentation) return state;
-                const layouts: SlideLayout[] = ['title', 'content', 'stats', 'feature-grid', 'quote', 'cta', 'split', 'bleed', 'lens', 'metrics', 'narrative', 'bento'];
+                updateConfig: (updates) => set((state) => {
+                    if (!state.ast) return state;
+                    return {
+                        ast: {
+                            ...state.ast,
+                            config: { ...state.ast.config, ...updates }
+                        }
+                    };
+                }),
 
-                return {
-                    presentation: {
-                        ...state.presentation,
-                        slides: state.presentation.slides.map((slide: SlideAST) => {
-                            if (slide.id === slideId) {
-                                const currentIndex = layouts.indexOf(slide.type);
-                                const nextIndex = (currentIndex + 1) % layouts.length;
-                                return { ...slide, type: layouts[nextIndex] };
-                            }
-                            return slide;
-                        })
+                addSection: (section, index) => set((state) => {
+                    if (!state.ast) return state;
+                    const newSections = [...state.ast.sections];
+                    if (index !== undefined) {
+                        newSections.splice(index, 0, section);
+                    } else {
+                        newSections.push(section);
                     }
-                };
-            }),
+                    return { ast: { ...state.ast, sections: newSections } };
+                }),
 
-            updateSlideContent: (slideId: string, partialContent: Partial<SlideContent>) => set((state: EditorState) => {
-                if (!state.presentation) return state;
-                return {
-                    presentation: {
-                        ...state.presentation,
-                        slides: state.presentation.slides.map((slide: SlideAST) =>
-                            slide.id === slideId ? { ...slide, content: { ...slide.content, ...partialContent } } : slide
-                        )
-                    }
-                };
-            }),
+                removeSection: (id) => set((state) => {
+                    if (!state.ast) return state;
+                    return {
+                        ast: {
+                            ...state.ast,
+                            sections: state.ast.sections.filter(s => s.id !== id)
+                        }
+                    };
+                }),
 
-            updateTheme: (partialTheme: Partial<PresentationAST>) => set((state: EditorState) => ({
-                presentation: state.presentation ? { ...state.presentation, ...partialTheme } : null
-            })),
+                updateSection: (id, updates) => set((state) => {
+                    if (!state.ast) return state;
+                    return {
+                        ast: {
+                            ...state.ast,
+                            sections: state.ast.sections.map(s => s.id === id ? { ...s, ...updates } : s)
+                        }
+                    };
+                }),
 
-            addAsset: (asset: BrandAsset) => set((state: EditorState) => {
-                if (!state.presentation) return state;
-                return {
-                    presentation: {
-                        ...state.presentation,
-                        assets: [...(state.presentation.assets || []), asset]
-                    }
-                };
+                reorderSections: (newOrder) => set((state) => {
+                    if (!state.ast) return state;
+                    const sectionMap = new Map(state.ast.sections.map(s => [s.id, s]));
+                    const newSections = newOrder.map(id => sectionMap.get(id)!).filter(Boolean);
+                    return { ast: { ...state.ast, sections: newSections } };
+                }),
+
+                addBlock: (sectionId, block, index) => set((state) => {
+                    if (!state.ast) return state;
+                    return {
+                        ast: {
+                            ...state.ast,
+                            sections: state.ast.sections.map(s => {
+                                if (s.id !== sectionId) return s;
+                                const newBlocks = [...s.blocks];
+                                if (index !== undefined) {
+                                    newBlocks.splice(index, 0, block);
+                                } else {
+                                    newBlocks.push(block);
+                                }
+                                return { ...s, blocks: newBlocks };
+                            })
+                        }
+                    };
+                }),
+
+                removeBlock: (sectionId, blockId) => set((state) => {
+                    if (!state.ast) return state;
+                    return {
+                        ast: {
+                            ...state.ast,
+                            sections: state.ast.sections.map(s => {
+                                if (s.id !== sectionId) return s;
+                                return { ...s, blocks: s.blocks.filter(b => b.id !== blockId) };
+                            })
+                        }
+                    };
+                }),
+
+                updateBlock: (sectionId, blockId, updates) => set((state) => {
+                    if (!state.ast) return state;
+                    return {
+                        ast: {
+                            ...state.ast,
+                            sections: state.ast.sections.map(s => {
+                                if (s.id !== sectionId) return s;
+                                return {
+                                    ...s,
+                                    blocks: s.blocks.map(b => b.id === blockId ? { ...b, ...updates } : b)
+                                };
+                            })
+                        }
+                    };
+                }),
+
+                reorderBlocks: (sectionId, newOrder) => set((state) => {
+                    if (!state.ast) return state;
+                    return {
+                        ast: {
+                            ...state.ast,
+                            sections: state.ast.sections.map(s => {
+                                if (s.id !== sectionId) return s;
+                                const blockMap = new Map(s.blocks.map(b => [b.id, b]));
+                                const newBlocks = newOrder.map(id => blockMap.get(id)!).filter(Boolean);
+                                return { ...s, blocks: newBlocks };
+                            })
+                        }
+                    };
+                }),
+
+                addAsset: (asset) => set((state) => {
+                    if (!state.ast) return state;
+                    return {
+                        ast: {
+                            ...state.ast,
+                            assets: { ...state.ast.assets, [asset.id]: asset }
+                        }
+                    };
+                }),
+
+                removeAsset: (id) => set((state) => {
+                    if (!state.ast) return state;
+                    const newAssets = { ...state.ast.assets };
+                    delete newAssets[id];
+                    return { ast: { ...state.ast, assets: newAssets } };
+                }),
             }),
-        }),
+            {
+                name: 'slidemaker-v2-storage',
+            }
+        ),
         {
-            name: 'slidemaker-storage',
+            limit: 50, // Undo stack limit
         }
     )
 );
+
+// Helper selectors
+export const useAst = () => useEditorStore((state) => state.ast);
+export const useActiveSection = () => useEditorStore((state) =>
+    state.ast?.sections.find(s => s.id === state.activeSectionId)
+);
+export const useUndoStore = () => useEditorStore.temporal;
