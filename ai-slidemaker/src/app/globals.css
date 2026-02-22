@@ -52,8 +52,23 @@
   }
 }
 
-@keyframes float {
+/* ARCHETYPE SYSTEM */
+.archetype-editorial-ledger { --color-accent: #000; }
+.archetype-editorial-ledger .scene-section { background: #fff !important; color: #000 !important; border: 1px solid #000; }
+.archetype-editorial-ledger h1 { font-family: 'serif'; text-transform: uppercase; letter-spacing: -0.05em; line-height: 0.9; }
 
+.archetype-split-rail .scene-section { border-radius: 0; }
+.archetype-split-rail .layout-split { gap: 0; }
+
+.archetype-card-mosaic .scene-section { background: #050505; }
+.archetype-card-mosaic .bento-cell { 
+    @apply bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl shadow-2xl;
+}
+
+.archetype-minimal-columns .scene-section { background: #fdfdfd; color: #1a1a1a; }
+.archetype-minimal-columns .layout-default { @apply gap-16; }
+
+@keyframes float {
   0%,
   100% {
     transform: translateY(0);

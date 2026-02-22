@@ -149,23 +149,57 @@ function getCoreCSS() {
 
         /* ARCHETYPE SPECIFIC OVERRIDES */
         .archetype-editorial-ledger { --bg: #ffffff; --fg: #000000; }
-        .archetype-editorial-ledger .section-content { max-width: 1000px; padding: 0 2rem; border-left: 1px solid #000; }
-        .archetype-editorial-ledger h1 { font-family: 'serif'; font-size: 8rem; text-transform: uppercase; }
+        .archetype-editorial-ledger .section { border-bottom: 2px solid #000; }
+        .archetype-editorial-ledger .section-content { max-width: 900px; padding: 4rem; position: relative; }
+        .archetype-editorial-ledger .section-content::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: #000; opacity: 0.1; }
+        .archetype-editorial-ledger h1 { font-family: 'serif'; font-size: clamp(4rem, 12vw, 10rem); line-height: 0.9; text-transform: uppercase; letter-spacing: -0.05em; margin-bottom: 2rem; }
+        .archetype-editorial-ledger .block-text p { font-size: 1.5rem; max-width: 40ch; line-height: 1.4; color: #333; }
 
-        .archetype-split-rail .layout-split { border-top: 1px solid var(--primary); padding-top: 2rem; }
-        .archetype-split-rail .col:first-child { border-right: 1px solid var(--primary); padding-right: 2rem; }
+        .archetype-split-rail .layout-split { gap: 0; }
+        .archetype-split-rail .col { padding: 5vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+        .archetype-split-rail .col:first-child { border-right: 1px solid rgba(var(--primary-rgb), 0.2); }
+        .archetype-split-rail .block-image img { border-radius: 0; height: 80vh; }
 
-        .archetype-card-mosaic .bento-cell { background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 2rem; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .archetype-card-mosaic { background: #050505; }
+        .archetype-card-mosaic .bento-cell { 
+            background: rgba(255,255,255,0.03); 
+            padding: 3rem; 
+            border-radius: 2.5rem; 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            transition: transform 0.4s ease;
+        }
+        .archetype-card-mosaic .bento-cell:hover { transform: translateY(-10px); background: rgba(255,255,255,0.05); }
 
-        .archetype-minimal-columns .section-content { max-width: 800px; }
-        .archetype-minimal-columns .layout-default { text-align: justify; columns: 2; column-gap: 4rem; }
+        .archetype-minimal-columns .section-content { max-width: 1400px; }
+        .archetype-minimal-columns .layout-default { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 6rem;
+        }
+        .archetype-minimal-columns .block-text { border-top: 1px solid var(--fg); padding-top: 1.5rem; }
+
+        /* NEON CYBER HUD EFFECTS */
+        .archetype-neon-cyber { --primary-rgb: 56, 189, 248; }
+        .archetype-neon-cyber .section::after { 
+            content: ""; position: absolute; inset: 0; 
+            background-image: radial-gradient(circle at 50% 50%, rgba(var(--primary-rgb), 0.05) 0%, transparent 70%); 
+            pointer-events: none; 
+        }
+        .archetype-neon-cyber .block-text h1 { 
+            text-shadow: 0 0 20px rgba(var(--primary-rgb), 0.4); 
+            letter-spacing: 0.2em; font-weight: 200; 
+        }
 
         /* MOBILE SAFE RULES */
         @media (max-width: 768px) {
             .layout-split { grid-template-columns: 1fr; }
+            .archetype-split-rail .col { height: auto; border-right: none; border-bottom: 1px solid rgba(var(--primary-rgb), 0.2); }
             .layout-bento { grid-template-columns: 1fr; grid-template-rows: auto; }
             .bento-main { grid-column: span 1; grid-row: span 1; }
-            .archetype-editorial-ledger h1 { font-size: 4rem; }
+            .archetype-editorial-ledger h1 { font-size: 5rem; }
+            .section { padding: 5vh 1rem; }
         }
 
         .block-text h1 { font-family: var(--font-head); font-size: clamp(3rem, 8vw, 6rem); line-height: 1; font-weight: 900; }
