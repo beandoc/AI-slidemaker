@@ -432,7 +432,8 @@ export default function AppHome() {
                     const blob = new Blob([html], { type: 'text/html' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a'); a.href = url;
-                    a.download = `${presentation.title.toLowerCase().replace(/\s+/g, '-')}.html`;
+                    const title = presentation.title || 'presentation';
+                    a.download = `${title.toLowerCase().replace(/\s+/g, '-')}.html`;
                     a.click(); URL.revokeObjectURL(url);
                   });
                 }}
