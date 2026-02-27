@@ -1,199 +1,130 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
-import { SceneAST, Section, Block, DocumentConfig, Asset } from './editor-types';
+import { Deck, Slide, DeckTheme } from './editor-types';
 
 interface EditorState {
-    ast: SceneAST | null;
-    activeSectionId: string | null;
-    activeBlockId: string | null;
-    isEditMode: boolean;
+    deck: Deck | null;
+    activeSlideIndex: number;
+    isSidebarOpen: boolean;
+    isFullscreen: boolean;
+    showGrid: boolean;
+    showNotes: boolean;
+    zoom: number;
 
     // --- Actions ---
-    setAst: (ast: SceneAST) => void;
-    setActiveSection: (id: string | null) => void;
-    setActiveBlock: (id: string | null) => void;
-    toggleEditMode: () => void;
+    setDeck: (deck: Deck) => void;
+    setActiveSlideIndex: (index: number) => void;
+    nextSlide: () => void;
+    prevSlide: () => void;
+    toggleSidebar: () => void;
+    toggleGrid: () => void;
+    toggleNotes: () => void;
+    setFullscreen: (val: boolean) => void;
+    setZoom: (val: number) => void;
 
-    // --- Scene Operations ---
-    updateConfig: (config: Partial<DocumentConfig>) => void;
-
-    // --- Section Operations ---
-    addSection: (section: Section, index?: number) => void;
-    removeSection: (id: string) => void;
-    updateSection: (id: string, updates: Partial<Section>) => void;
-    reorderSections: (newOrder: string[]) => void;
-
-    // --- Block Operations ---
-    addBlock: (sectionId: string, block: Block, index?: number) => void;
-    removeBlock: (sectionId: string, blockId: string) => void;
-    updateBlock: (sectionId: string, blockId: string, updates: Partial<Block>) => void;
-    reorderBlocks: (sectionId: string, newOrder: string[]) => void;
-
-    // --- Asset Operations ---
-    addAsset: (asset: Asset) => void;
-    removeAsset: (id: string) => void;
+    // --- Deck Operations ---
+    updateTheme: (theme: Partial<DeckTheme>) => void;
+    addSlide: (slide: Slide, index?: number) => void;
+    removeSlide: (id: string) => void;
+    updateSlide: (id: string, updates: Partial<Slide>) => void;
+    reorderSlides: (newOrder: string[]) => void;
 }
 
 export const useEditorStore = create<EditorState>()(
     temporal(
         persist(
             (set) => ({
-                ast: null,
-                activeSectionId: null,
-                activeBlockId: null,
-                isEditMode: true,
+                deck: null,
+                activeSlideIndex: 0,
+                isSidebarOpen: true,
+                isFullscreen: false,
+                showGrid: false,
+                showNotes: false,
+                zoom: 1,
 
-                setAst: (ast) => set({
-                    ast,
-                    activeSectionId: ast.sections.length > 0 ? ast.sections[0].id : null
+                setDeck: (deck) => set({ deck, activeSlideIndex: 0 }),
+                setActiveSlideIndex: (index) => set({ activeSlideIndex: index }),
+
+                nextSlide: () => set((state) => {
+                    if (!state.deck) return state;
+                    const nextIndex = Math.min(state.activeSlideIndex + 1, state.deck.slides.length - 1);
+                    return { activeSlideIndex: nextIndex };
                 }),
 
-                setActiveSection: (id) => set({ activeSectionId: id, activeBlockId: null }),
-                setActiveBlock: (id) => set({ activeBlockId: id }),
-                toggleEditMode: () => set((state) => ({ isEditMode: !state.isEditMode })),
+                prevSlide: () => set((state) => {
+                    const prevIndex = Math.max(state.activeSlideIndex - 1, 0);
+                    return { activeSlideIndex: prevIndex };
+                }),
 
-                updateConfig: (updates) => set((state) => {
-                    if (!state.ast) return state;
+                toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+                toggleGrid: () => set((state) => ({ showGrid: !state.showGrid })),
+                toggleNotes: () => set((state) => ({ showNotes: !state.showNotes })),
+                setFullscreen: (val) => set({ isFullscreen: val }),
+                setZoom: (val) => set({ zoom: val }),
+
+                updateTheme: (updates) => set((state) => {
+                    if (!state.deck) return state;
                     return {
-                        ast: {
-                            ...state.ast,
-                            config: { ...state.ast.config, ...updates }
+                        deck: {
+                            ...state.deck,
+                            theme: { ...state.deck.theme, ...updates }
                         }
                     };
                 }),
 
-                addSection: (section, index) => set((state) => {
-                    if (!state.ast) return state;
-                    const newSections = [...state.ast.sections];
+                addSlide: (slide, index) => set((state) => {
+                    if (!state.deck) return state;
+                    const newSlides = [...state.deck.slides];
                     if (index !== undefined) {
-                        newSections.splice(index, 0, section);
+                        newSlides.splice(index, 0, slide);
                     } else {
-                        newSections.push(section);
+                        newSlides.push(slide);
                     }
-                    return { ast: { ...state.ast, sections: newSections } };
+                    return { deck: { ...state.deck, slides: newSlides } };
                 }),
 
-                removeSection: (id) => set((state) => {
-                    if (!state.ast) return state;
+                removeSlide: (id) => set((state) => {
+                    if (!state.deck) return state;
+                    const newSlides = state.deck.slides.filter(s => s.id !== id);
+                    const newIndex = Math.min(state.activeSlideIndex, newSlides.length - 1);
                     return {
-                        ast: {
-                            ...state.ast,
-                            sections: state.ast.sections.filter(s => s.id !== id)
+                        deck: { ...state.deck, slides: newSlides },
+                        activeSlideIndex: Math.max(0, newIndex)
+                    };
+                }),
+
+                updateSlide: (id, updates) => set((state) => {
+                    if (!state.deck) return state;
+                    return {
+                        deck: {
+                            ...state.deck,
+                            slides: state.deck.slides.map(s => s.id === id ? { ...s, ...updates } : s)
                         }
                     };
                 }),
 
-                updateSection: (id, updates) => set((state) => {
-                    if (!state.ast) return state;
-                    return {
-                        ast: {
-                            ...state.ast,
-                            sections: state.ast.sections.map(s => s.id === id ? { ...s, ...updates } : s)
-                        }
-                    };
-                }),
-
-                reorderSections: (newOrder) => set((state) => {
-                    if (!state.ast) return state;
-                    const sectionMap = new Map(state.ast.sections.map(s => [s.id, s]));
-                    const newSections = newOrder.map(id => sectionMap.get(id)!).filter(Boolean);
-                    return { ast: { ...state.ast, sections: newSections } };
-                }),
-
-                addBlock: (sectionId, block, index) => set((state) => {
-                    if (!state.ast) return state;
-                    return {
-                        ast: {
-                            ...state.ast,
-                            sections: state.ast.sections.map(s => {
-                                if (s.id !== sectionId) return s;
-                                const newBlocks = [...s.blocks];
-                                if (index !== undefined) {
-                                    newBlocks.splice(index, 0, block);
-                                } else {
-                                    newBlocks.push(block);
-                                }
-                                return { ...s, blocks: newBlocks };
-                            })
-                        }
-                    };
-                }),
-
-                removeBlock: (sectionId, blockId) => set((state) => {
-                    if (!state.ast) return state;
-                    return {
-                        ast: {
-                            ...state.ast,
-                            sections: state.ast.sections.map(s => {
-                                if (s.id !== sectionId) return s;
-                                return { ...s, blocks: s.blocks.filter(b => b.id !== blockId) };
-                            })
-                        }
-                    };
-                }),
-
-                updateBlock: (sectionId, blockId, updates) => set((state) => {
-                    if (!state.ast) return state;
-                    return {
-                        ast: {
-                            ...state.ast,
-                            sections: state.ast.sections.map(s => {
-                                if (s.id !== sectionId) return s;
-                                return {
-                                    ...s,
-                                    blocks: s.blocks.map(b => b.id === blockId ? { ...b, ...updates } : b)
-                                };
-                            })
-                        }
-                    };
-                }),
-
-                reorderBlocks: (sectionId, newOrder) => set((state) => {
-                    if (!state.ast) return state;
-                    return {
-                        ast: {
-                            ...state.ast,
-                            sections: state.ast.sections.map(s => {
-                                if (s.id !== sectionId) return s;
-                                const blockMap = new Map(s.blocks.map(b => [b.id, b]));
-                                const newBlocks = newOrder.map(id => blockMap.get(id)!).filter(Boolean);
-                                return { ...s, blocks: newBlocks };
-                            })
-                        }
-                    };
-                }),
-
-                addAsset: (asset) => set((state) => {
-                    if (!state.ast) return state;
-                    return {
-                        ast: {
-                            ...state.ast,
-                            assets: { ...state.ast.assets, [asset.id]: asset }
-                        }
-                    };
-                }),
-
-                removeAsset: (id) => set((state) => {
-                    if (!state.ast) return state;
-                    const newAssets = { ...state.ast.assets };
-                    delete newAssets[id];
-                    return { ast: { ...state.ast, assets: newAssets } };
+                reorderSlides: (newOrder) => set((state) => {
+                    if (!state.deck) return state;
+                    const slideMap = new Map(state.deck.slides.map(s => [s.id, s]));
+                    const newSlides = newOrder.map(id => slideMap.get(id)!).filter(Boolean);
+                    return { deck: { ...state.deck, slides: newSlides } };
                 }),
             }),
             {
-                name: 'slidemaker-v2-storage',
+                name: 'lovable-slides-storage',
             }
         ),
         {
-            limit: 50, // Undo stack limit
+            limit: 50,
         }
     )
 );
 
 // Helper selectors
-export const useAst = () => useEditorStore((state) => state.ast);
-export const useActiveSection = () => useEditorStore((state) =>
-    state.ast?.sections.find(s => s.id === state.activeSectionId)
+export const useDeck = () => useEditorStore((state) => state.deck);
+export const useActiveSlide = () => useEditorStore((state) =>
+    state.deck?.slides[state.activeSlideIndex]
 );
 export const useUndoStore = () => useEditorStore.temporal;
+

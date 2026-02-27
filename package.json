@@ -8,7 +8,11 @@
     "example": "examples"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "npm --prefix ai-slidemaker run dev",
+    "build": "npm --prefix ai-slidemaker run build",
+    "start": "npm --prefix ai-slidemaker run start",
+    "lint": "npm --prefix ai-slidemaker run lint",
+    "test": "echo \"No root tests configured\""
   },
   "keywords": [],
   "author": "",

@@ -1,39 +1,43 @@
 @import "tailwindcss";
 
 @theme {
-  --color-canvas: #040508;
-  --color-surface: #0c0f17;
-  --color-surface-soft: #141824;
-  --color-accent: #00f2ff;
-  --color-accent-dim: rgba(0, 242, 255, 0.15);
-  --color-border: rgba(255, 255, 255, 0.08);
+  --color-canvas: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f1f5f9;
+  --color-accent: #f97316;
+  /* Orange */
+  --color-accent-blue: #3b82f6;
+  --color-border: #e2e8f0;
 
-  --font-sans: 'Satoshi', system-ui, sans-serif;
+  --font-sans: 'Satoshi', 'Inter', system-ui, sans-serif;
   --font-display: 'Clash Display', system-ui, sans-serif;
 }
 
 @layer base {
   body {
-    @apply bg-canvas text-white antialiased selection:bg-accent selection:text-black;
+    @apply bg-canvas text-slate-900 antialiased selection:bg-accent/20 selection:text-accent;
     font-feature-settings: "ss01", "ss02", "cv01";
   }
 }
 
 @layer components {
+  .slide-container {
+    width: 1920px;
+    height: 1080px;
+    background: white;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    transform-origin: top left;
+  }
+
   .glass {
-    @apply backdrop-blur-xl bg-white/5 border border-white/10;
+    @apply backdrop-blur-xl bg-white/70 border border-black/5;
   }
 
-  .glass-dark {
-    @apply backdrop-blur-2xl bg-black/40 border border-white/5;
-  }
-
-  .neo-glow {
-    box-shadow: 0 0 40px -10px var(--color-accent-dim);
-  }
-
-  .text-glow {
-    text-shadow: 0 0 20px var(--color-accent-dim);
+  .nav-item-active {
+    @apply bg-accent/10 border-accent/40 text-accent;
   }
 }
 
@@ -42,33 +46,27 @@
     animation: float 6s ease-in-out infinite;
   }
 
-  .animate-scan {
-    animation: scan 3s linear infinite;
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
   }
 
-  .noise-bg {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity: 0.03;
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
   }
 }
-
-/* ARCHETYPE SYSTEM */
-.archetype-editorial-ledger { --color-accent: #000; }
-.archetype-editorial-ledger .scene-section { background: #fff !important; color: #000 !important; border: 1px solid #000; }
-.archetype-editorial-ledger h1 { font-family: 'serif'; text-transform: uppercase; letter-spacing: -0.05em; line-height: 0.9; }
-
-.archetype-split-rail .scene-section { border-radius: 0; }
-.archetype-split-rail .layout-split { gap: 0; }
-
-.archetype-card-mosaic .scene-section { background: #050505; }
-.archetype-card-mosaic .bento-cell { 
-    @apply bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl shadow-2xl;
-}
-
-.archetype-minimal-columns .scene-section { background: #fdfdfd; color: #1a1a1a; }
-.archetype-minimal-columns .layout-default { @apply gap-16; }
 
 @keyframes float {
+
   0%,
   100% {
     transform: translateY(0);
@@ -79,31 +77,11 @@
   }
 }
 
-@keyframes scan {
-  0% {
-    transform: translateY(-100%);
-  }
-
-  100% {
-    transform: translateY(100%);
-  }
+/* LOVABLE SLIDES SPECIFIC */
+.slide-shadow {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Custom Scrollbar - Premium Dark Mode */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accent);
+.thumbnail-active {
+  @apply ring-4 ring-accent-blue ring-offset-2 scale-[1.02];
 }

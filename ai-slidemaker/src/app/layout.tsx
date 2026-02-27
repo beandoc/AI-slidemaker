@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Slidemaker — Enterprise",
-  description: "World class, deterministic AI presentation generator.",
+  title: "Lovable Slides — Interactive Presentations",
+  description: "AI-powered presentations that go beyond static slides.",
 };
 
 export default function RootLayout({
@@ -12,29 +12,37 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark scroll-smooth">
+    <html lang="en" className="light overflow-hidden">
       <head>
-        <link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500&display=swap" rel="stylesheet" />
+        <link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
       </head>
-      <body className="antialiased bg-[#090b11] text-gray-100 min-h-screen flex flex-col font-sans">
-        <header className="border-b border-gray-800 bg-[#0c0f18] px-6 py-4 flex items-center justify-between sticky top-0 z-50">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-cyan-400">
-              <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
-              <path d="M6 10h12M6 14h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            AI <span className="text-cyan-400 font-extrabold">Slidemaker</span> <span className="text-gray-500 font-normal text-sm ml-2 px-2 py-0.5 rounded-full border border-gray-700 bg-gray-800">Pro Edition</span>
+      <body className="antialiased bg-canvas text-slate-900 min-h-screen flex flex-col font-sans selection:bg-orange-100 selection:text-orange-600">
+        <header className="border-b border-slate-200 bg-white px-6 py-3 flex items-center justify-between sticky top-0 z-50 h-16">
+          <div className="flex items-center gap-3 font-bold text-xl tracking-tight">
+            <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-white">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+            </div>
+            <span className="font-display font-bold text-slate-900">Lovable <span className="text-orange-500">slides</span></span>
           </div>
-          <nav className="flex gap-4">
-            <button className="text-sm text-gray-400 hover:text-white transition-colors duration-200">Export Integrations</button>
-            <button className="text-sm text-gray-400 hover:text-white transition-colors duration-200">Settings</button>
+
+          <nav className="flex items-center gap-6">
+            <div className="flex items-center gap-4 text-sm font-medium text-slate-500">
+              <button className="hover:text-slate-900 transition-colors">Solutions</button>
+              <button className="hover:text-slate-900 transition-colors">Resources</button>
+              <button className="hover:text-slate-900 transition-colors">Enterprise</button>
+              <button className="hover:text-slate-900 transition-colors">Pricing</button>
+            </div>
+            <div className="w-px h-6 bg-slate-200 mx-2" />
+            <button className="text-sm font-bold text-slate-900 px-4 py-2 hover:bg-slate-50 rounded-lg transition-colors">Log in</button>
+            <button className="text-sm font-bold text-white bg-slate-900 px-5 py-2 rounded-lg hover:bg-slate-800 transition-colors">Get started</button>
           </nav>
         </header>
 
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col overflow-hidden">
           {children}
         </main>
       </body>
     </html>
   );
 }
+
