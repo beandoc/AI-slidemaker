@@ -1,9 +1,6 @@
 {
     "version": 2,
-    "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "/$1"
-        }
-    ]
+    "buildCommand": "cd ai-slidemaker && npm run build",
+    "outputDirectory": "ai-slidemaker/.next",
+    "framework": "nextjs"
 }

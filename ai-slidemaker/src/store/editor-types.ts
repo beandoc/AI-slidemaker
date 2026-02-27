@@ -28,7 +28,35 @@ export const SlideTypeSchema = z.enum([
     'comparison',
     'cta',
     'booking',
-    'custom'
+    'custom',
+    // Engine Archetypes
+    'bento',
+    'kinetic',
+    'editorial',
+    'lens',
+    'dimension',
+    'metric-list',
+    'split',
+    'simulation',
+    'calculator',
+    '3d-sim',
+    'content-classic',
+    'horizon',
+    'gallery',
+    'bleed',
+    'minimal',
+    'knockout',
+    'callout',
+    'assemble',
+    'narrative',
+    'objectives',
+    'table',
+    'stats',
+    'quote-classic',
+    'highlight',
+    'context',
+    'faq',
+    'columns'
 ]);
 
 export const ChartDataSchema = z.object({
@@ -60,6 +88,7 @@ export const CalculationItemSchema = z.object({
 export const SlideSchema = z.object({
     id: z.string(),
     title: z.string(),
+    subtitle: z.string().optional(),
     type: SlideTypeSchema,
     content: z.record(z.string(), z.any()),
     background: SlideBackgroundSchema,

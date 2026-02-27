@@ -13,7 +13,7 @@ interface EditorState {
     zoom: number;
 
     // --- Actions ---
-    setDeck: (deck: Deck) => void;
+    setDeck: (deck: Deck | null) => void;
     setActiveSlideIndex: (index: number) => void;
     nextSlide: () => void;
     prevSlide: () => void;

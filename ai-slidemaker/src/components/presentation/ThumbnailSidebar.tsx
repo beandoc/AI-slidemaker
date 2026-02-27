@@ -70,24 +70,52 @@ export default function ThumbnailSidebar() {
     };
 
     return (
-        <div className="w-full h-full flex flex-col bg-slate-50 border-r border-slate-200">
-            <div className="p-4 flex items-center justify-between border-b border-slate-200 bg-white">
-                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Slides</h2>
-                <button className="text-slate-400 hover:text-slate-900 transition-colors">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
-                </button>
+        <div className="w-full h-full flex flex-col bg-slate-50/50">
+            {/* Top Bar for middle column */}
+            <div className="p-4 flex items-center justify-between bg-white border-b border-slate-100">
+                <span className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Outline</span>
+                <div className="flex gap-1">
+                    <button
+                        onClick={() => useEditorStore.getState().setDeck(null)}
+                        className="p-1.5 hover:bg-slate-50 hover:text-red-500 rounded-md text-slate-400 transition-colors"
+                        title="New Presentation (Clear Content)"
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+                    </button>
+                </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-2">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                     <SortableContext items={deck.slides.map(s => s.id)} strategy={verticalListSortingStrategy}>
                         {deck.slides.map((slide, i) => (
-                            <SortableThumbnail
-                                key={slide.id}
-                                slide={slide}
-                                index={i}
-                                isActive={activeSlideIndex === i}
-                            />
+                            <div key={slide.id} className="flex gap-4 group">
+                                <span className={`text-[11px] font-black mt-10 transition-colors ${activeSlideIndex === i ? 'text-blue-500' : 'text-slate-300'}`}>
+                                    {i + 1}
+                                </span>
+                                <div className="flex-1">
+                                    <div
+                                        onClick={() => useEditorStore.getState().setActiveSlideIndex(i)}
+                                        className={`relative aspect-video rounded-xl border-2 transition-all cursor-pointer overflow-hidden shadow-sm
+                                            ${activeSlideIndex === i
+                                                ? 'border-blue-500 ring-4 ring-blue-500/10 scale-102'
+                                                : 'border-white hover:border-slate-200'}`}
+                                    >
+                                        <div
+                                            className="absolute inset-0 opacity-80"
+                                            style={{ background: slide.background?.value }}
+                                        />
+                                        <div className="absolute inset-0 flex items-center justify-center p-3">
+                                            <p className={`text-[8px] font-black uppercase tracking-tight text-center line-clamp-2 ${slide.background?.value === '#ffffff' ? 'text-black' : 'text-white'}`}>
+                                                {slide.title}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase mt-2 block px-1 tracking-tighter truncate">
+                                        {slide.type}
+                                    </span>
+                                </div>
+                            </div>
                         ))}
                     </SortableContext>
                 </DndContext>

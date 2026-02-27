@@ -28,11 +28,14 @@ export default function AppHome() {
       });
 
       const payload = await response.json();
-      if (payload.data) {
+      if (response.ok && payload.data) {
         setDeck(payload.data);
+      } else {
+        alert(payload.error || 'Generation failed. Check the server console.');
       }
     } catch (error) {
       console.error(error);
+      alert("Network error: Could not reach generation API.");
     } finally {
       setIsGenerating(false);
     }
@@ -63,7 +66,7 @@ export default function AppHome() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-64px)]">
+    <div className="flex-1 flex flex-col h-screen">
       <AnimatePresence mode="wait">
         {!deck ? (
           <motion.div
@@ -128,7 +131,10 @@ export default function AppHome() {
             animate={{ opacity: 1 }}
             className="flex-1 flex flex-col"
           >
-            <PresentationViewer onRefine={handleRefine} />
+            <PresentationViewer
+              onRefine={handleRefine}
+              isGenerating={isGenerating}
+            />
           </motion.div>
         )}
       </AnimatePresence>

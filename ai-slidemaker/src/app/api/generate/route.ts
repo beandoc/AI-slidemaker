@@ -1,113 +1,88 @@
 import { NextResponse } from 'next/server';
 
 const SYSTEM_PROMPT = `
-You are a World-Class Presentation Architect specializing in "Lovable Slides".
-Your goal is to transform user content into a high-fidelity, interactive React-powered slide deck.
+You are a World-Class Presentation Architect specializing in "Lovable Slides" — high-fidelity, interactive, and cinematically designed slide decks.
+Your goal is to transform user content into a stunning React-powered presentation using our Studio Archetype Engine.
 
-Available Slide Types:
-1. "title": Hero slide for high impact.
-   - Props: { title, subtitle, tagline }
-2. "interactive-chart": Dynamic data visualization.
-   - Props: { title, description, baseData: { labels, datasets: [{ label, data, color }] }, controls: [{ id, label, min, max, value }] }
-   - Use this for any quantitative trends or balance-based content.
-3. "calculations": Interactive metric cards for ROI or performance.
-   - Props: { title, items: [{ id, label, value, unit, description }] }
-   - Use this for multi-component data like adoption rates or costs.
-4. "comparison": Side-by-side framework comparison. Props: { title, left: { title, points }, right: { title, points } }
-5. "cta": High-conversion closing slide. Props: { title, text, buttonText }
-6. "booking": Interactive calendar/booking flow. Props: { title, subtitle, buttonText }
-7. "custom": Used ONLY when a layout is highly specific (e.g., 3-column stats, image grids) and doesn't fit the above. Props: { html }
-   - The 'html' string MUST contain raw HTML using standard Tailwind CSS classes. No React components, pure HTML. For icons, use standard svg string data. For interactive elements use purely visual hover effects. Scale everything to a 1920x1080 container. Use flex/grid for complex layouts.
+Available Slide Archetypes:
+1. "title": High-impact hero slide. 
+2. "bento": Modern grid for features or structured data Modules.
+3. "kinetic": High-energy atmospheric slide for vision/concepts (large text).
+4. "editorial": Magazine-style divider or deep-focus slide.
+5. "split": 50/50 image and text spread. Perfect for concise single-slide content.
+6. "simulation": INTERACTIVE supply/demand curve simulation. Use when user mentions costs, market, or shifts.
+7. "calculator": INTERACTIVE feature selection panel. Use for ROI, Adoption, or feature lists.
+8. "metric-list": Large professional growth chart with detail cards. Use for statistics and trends.
+9. "3d-sim": INTERACTIVE 3D mesh object view. Use for structural or product concepts.
+10. "booking": INTERACTIVE calendar and time-slot booking flow.
 
-Design Rules:
-- Generate 6-8 slides.
-- Use variety. Never repeat a slide type 3 times in a row.
-- Backgrounds: Use vibrant, modern CSS linear-gradients (e.g. 135deg, #f97316 0%, #facc15 100%) for impact slides, and clean #ffffff for content-heavy slides.
-- Notes: Include brief "presenter notes" for each slide to guide the speaker.
-- Interactivity: Ensure "interactive-chart" has meaningful controls (e.g. "Interest Rate", "Adoption Speed").
+CRITICAL CONSTRAINTS:
+- **Conciseness**: Only generate 3-5 slides max unless explicitly asked for more.
+- **Single Block Content**: If the user provides a single short paragraph, generate EXACTLY 1 OR 2 slides, using 'split' or 'editorial' for the text, or an interactive archetype if they mention numbers.
+- **Interactivity**: If the user provides data that can be "played" with (costs, ROI, growth), ALWAYS use 'simulation', 'calculator', or 'metric-list'.
+- **Structure**: Every slide MUST have a 'title' and 'subtitle'.
+- **Studio Aesthetic**: Use vibrant gradients and #0a0a0f cinematic backgrounds.
 
-Return ONLY valid JSON matching the Deck schema.
+JSON OUTPUT FORMAT:
+You MUST return valid JSON exactly matching this structure:
+{
+  "title": "Deck Title",
+  "theme": { "primary": "#3b82f6", "accent": "#00c6ff", "background": "#0a0a0f", "foreground": "#e0e0e0" },
+  "slides": [
+    {
+      "id": "s1",
+      "type": "split",
+      "title": "Slide Title",
+      "subtitle": "Optional Subtitle",
+      "content": { "heading": "Content Heading", "text": "Content Text" },
+      "background": { "type": "color", "value": "#ffffff" }
+    }
+  ]
+}
 `;
 
 function createFallbackDeck() {
     return {
         id: `deck_${Date.now()}`,
-        title: 'Project Lovable: Interactive Vision 2026',
+        title: 'Studio Edition: Interactive Vision 2026',
         slides: [
             {
                 id: 's1',
-                title: 'The Future of Presentations',
+                title: 'Studio Edition 2026',
+                subtitle: 'Building presentations as powerful as modern web applications.',
                 type: 'title',
                 content: {
-                    title: 'Interactive Intelligence',
-                    subtitle: 'Building presentations as powerful as modern web applications.',
-                    tagline: 'STRATEGY 2026'
+                    tagline: 'INTERACTIVE VISION // V.2'
                 },
-                background: { type: 'gradient', value: 'linear-gradient(135deg, #3b82f6 0%, #a855f7 100%)' },
-                notes: 'Welcome the audience. Emphasize that these aren\'t just static slides—they are interactive experiences.'
+                background: { type: 'gradient', value: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
+                notes: 'Welcome the audience.'
             },
             {
                 id: 's2',
-                title: 'Comparison of Methods',
-                type: 'comparison',
-                content: {
-                    title: 'Legacy vs. Modern',
-                    left: {
-                        title: 'Traditional PowerPoint',
-                        points: ['Static images and text', 'Limited interactivity', 'Locked resolution', 'Complex editing workflows']
-                    },
-                    right: {
-                        title: 'Lovable Slides',
-                        points: ['Code-powered components', 'Real-time data interaction', 'Perfect scaling (1920x1080)', 'AI-assisted generation']
-                    }
-                },
+                title: 'Interactive Simulations',
+                subtitle: 'Adjust the curves to see real-time market equilibrium',
+                type: 'simulation',
+                content: {},
                 background: { type: 'color', value: '#ffffff' },
-                notes: 'Explain why the transition to interactive slides is inevitable for teams that care about engagement.'
             },
             {
                 id: 's3',
-                title: 'Growth Projections',
-                type: 'calculations',
-                content: {
-                    title: 'Engagement Metrics',
-                    items: [
-                        { id: 'm1', label: 'Retention', value: 89, unit: '%', description: 'Audience focus duration' },
-                        { id: 'm2', label: 'CTR', value: 45, unit: '%', description: 'Post-presentation clicks' },
-                        { id: 'm3', label: 'Conversion', value: 12, unit: '%', description: 'Goal achievement rate' }
-                    ]
-                },
+                title: 'Selectable Feature Logic',
+                subtitle: 'Dynamic weighted averaging for complex feature sets',
+                type: 'calculator',
+                content: {},
                 background: { type: 'color', value: '#ffffff' },
-                notes: 'Highlight how interactivity directly leads to better retention and conversion.'
             },
             {
                 id: 's4',
-                title: 'Market Dynamics',
-                type: 'interactive-chart',
-                content: {
-                    title: 'Adoption Curve',
-                    description: 'Adjust market forces to see how adoption accelerates with interactive content.',
-                    controls: [
-                        { id: 'demand', label: 'Market Demand', min: -50, max: 50, value: 0 },
-                        { id: 'supply', label: 'Feature Supply', min: -50, max: 50, value: 0 }
-                    ]
-                },
+                title: 'Data-Driven Growth',
+                subtitle: 'Professional trend analysis with drill-down cards',
+                type: 'metric-list',
+                content: {},
                 background: { type: 'color', value: '#ffffff' },
-                notes: 'Demonstrate the interactive chart. Pull the sliders to show how the curves shift.'
-            },
-            {
-                id: 's5',
-                title: 'Closing',
-                type: 'cta',
-                content: {
-                    title: 'Ready to Transform?',
-                    text: 'Join the next generation of presenters using code-powered interactive stories.',
-                    buttonText: 'Get Started Now'
-                },
-                background: { type: 'color', value: '#0f172a' },
-                notes: 'Final call to action. Summarize the key benefits and end on a high note.'
             }
         ],
-        theme: { primary: '#f97316', accent: '#3b82f6', background: '#ffffff', foreground: '#0f172a' },
+        theme: { primary: '#3b82f6', accent: '#60a5fa', background: '#0a0a0f', foreground: '#e0e0e0' },
         createdAt: new Date().toISOString()
     };
 }
@@ -121,13 +96,14 @@ export async function POST(req: Request) {
     try {
         const body = await req.json();
         const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : '';
-        const apiKey = (body.apiKey as string | undefined) || process.env.GEMINI_API_KEY;
+        const apiKey = ((body.apiKey as string | undefined) || process.env.GEMINI_API_KEY)?.trim();
 
         if (!prompt) {
             return NextResponse.json({ error: 'Prompt is required.' }, { status: 400 });
         }
 
         if (!apiKey) {
+            console.log("⚠️ WARNING: GEMINI_API_KEY is not defined in environment variables. Returning fallback deck.");
             return NextResponse.json({
                 data: createFallbackDeck(),
                 warning: 'No Gemini API key found. Returned a fallback demo deck.',
@@ -135,44 +111,50 @@ export async function POST(req: Request) {
         }
 
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-                    generationConfig: { responseMimeType: 'application/json' },
+                    contents: [{
+                        parts: [{
+                            text: `CONTEXT & RULES:\n${SYSTEM_PROMPT}\n\nUSER REQUEST:\n${prompt}\n\nRESPONSE (VALID JSON ONLY):`
+                        }]
+                    }]
                 }),
             }
         );
 
         if (!response.ok) {
-            return NextResponse.json({
-                data: createFallbackDeck(),
-                warning: 'API error. Returned demo deck.',
-            });
+            const errorText = await response.text();
+            console.error("GEMINI API ERROR:", response.status, errorText);
+            return NextResponse.json({ error: 'Gemini API rejected request: ' + response.statusText }, { status: 502 });
         }
 
         const payload = await response.json();
         const rawText = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!rawText) return NextResponse.json({ data: createFallbackDeck() });
+        if (!rawText) return NextResponse.json({ error: 'LLM returned empty text' }, { status: 500 });
 
-        const parsed = JSON.parse(extractJsonPayload(rawText));
+        let parsed;
+        try {
+            parsed = JSON.parse(extractJsonPayload(rawText));
+        } catch (e) {
+            console.error("JSON PARSE ERROR. Raw text was:", rawText);
+            return NextResponse.json({ error: 'Failed to parse AI output. Try a simpler prompt.' }, { status: 500 });
+        }
 
         // Ensure theme exists
         if (!parsed.theme) {
-            parsed.theme = { primary: '#f97316', accent: '#3b82f6', background: '#ffffff', foreground: '#0f172a' };
+            parsed.theme = { primary: '#f97316', accent: '#3b82f6', background: '#0a0a0f', foreground: '#e0e0e0' };
         }
         if (!parsed.createdAt) parsed.createdAt = new Date().toISOString();
         if (!parsed.id) parsed.id = `deck_${Date.now()}`;
 
         return NextResponse.json({ data: parsed });
-    } catch {
+    } catch (e) {
+        console.error("GENERATION CATCH ERROR:", e);
         return NextResponse.json({
-            data: createFallbackDeck(),
-            warning: 'Generation failed. Returned demo deck.',
-        });
+            error: 'Generation failed entirely.',
+        }, { status: 500 });
     }
 }
-

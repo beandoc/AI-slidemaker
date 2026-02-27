@@ -1,0 +1,619 @@
+/* CORE SYSTEM */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@200;900&family=Playfair+Display:ital,wght@0,900;1,900&family=Syne:wght@800&family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,900;1,9..144,900&family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;700&family=Cormorant+Garamond:wght@300;700&family=Montserrat:wght@300;500&family=JetBrains+Mono:wght@100;400;800&family=Calistoga&family=Schibsted+Grotesk:wght@400;700;900&family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;700&family=Questrial&family=Urbanist:wght@300;400;700;900&family=Public+Sans:wght@300;400&display=swap');
+
+:root {
+    --motion-travel: 40px;
+    --motion-easing: cubic-bezier(0.23, 1, 0.32, 1);
+    --bg: #0a0a0f;
+    --fg: #e0e0e0;
+    --accent: #7000ff;
+    --accent-soft: rgba(112, 0, 255, 0.1);
+    --surface: rgba(255, 255, 255, 0.03);
+    --f-head: 'Outfit', sans-serif;
+    --f-body: 'Inter', sans-serif;
+}
+
+/* 0. GLOBAL FORCE OVERRIDES */
+.engine-container a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: opacity 0.3s;
+}
+
+.engine-container a:hover {
+    opacity: 0.7;
+}
+
+.engine-container ul {
+    list-style: none;
+    padding: 0;
+}
+
+.engine-container li {
+    position: relative;
+    padding-left: 2rem;
+    margin-bottom: 1rem;
+}
+
+.engine-container li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 900;
+    opacity: 0.5;
+}
+
+/* 1. TYPOGRAPHIC SAFETY NETS (Senior Directives) */
+.engine-container h1,
+.engine-container h2,
+.engine-container .h-hero {
+    letter-spacing: -0.05em !important;
+    line-height: 1.05 !important;
+    text-rendering: optimizeLegibility;
+}
+
+/* 2. MIXED WEIGHT TENSION */
+.mixed-weight {
+    font-weight: 200;
+}
+
+.mixed-weight strong {
+    font-weight: 900;
+}
+
+/* 3. SENIOR BORDERS (Whisper Thin) */
+.glass-panel,
+.card,
+.bento-card {
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* 4. MESH GRADIENT CORE (V27 Atmospheric) */
+.mesh-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+        radial-gradient(at 0% 0%, var(--accent-soft) 0%, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(129, 140, 248, 0.05) 0%, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(192, 132, 252, 0.05) 0%, transparent 50%),
+        var(--bg);
+}
+
+/* 4.1 NOISE TEXTURE (The Soul) */
+.engine-container::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    mix-blend-mode: overlay;
+}
+
+.engine-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--fg);
+    position: relative;
+}
+
+.engine-slide {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 6. LAYERED STICKY DEPTH */
+.slide--hero,
+.slide--lens,
+.slide--horizon {
+    height: 100%;
+}
+
+/* DESIGN SYSTEM COMPONENTS */
+.label {
+    font-family: var(--f-head);
+    font-size: 0.8rem;
+    letter-spacing: 0.4em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    display: block;
+}
+
+.engine-container h1 {
+    font-family: var(--f-head);
+    font-size: clamp(3.5rem, 10vw, 8rem);
+    line-height: 0.95;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+}
+
+.engine-container h2 {
+    font-family: var(--f-head);
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.1;
+    margin-bottom: 2rem;
+    font-weight: 800;
+}
+
+.subtitle,
+.subtext {
+    font-family: var(--f-body);
+    font-size: 1.4rem;
+    font-weight: 200;
+    opacity: 0.6;
+    max-width: 600px;
+    letter-spacing: 0.02em;
+    margin-top: -1.5rem;
+    /* Tighter vertical grouping */
+}
+
+.wide-wrap {
+    width: 100%;
+    max-width: 1400px;
+    padding: 0 12vw;
+    /* Generous breathing room */
+    position: relative;
+    z-index: 10;
+    margin: 0 auto;
+}
+
+/* GLASSMORPHISM DNA */
+.glass-panel,
+.bento-card,
+.teaser-card {
+    background: rgba(255, 255, 255, 0.01) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.6s var(--motion-easing) !important;
+}
+
+.glass-panel:hover,
+.bento-card:hover,
+.teaser-card:hover {
+    border-color: var(--accent) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    transform: translateY(-8px) scale(1.01) !important;
+}
+
+/* BACKGROUNDS */
+.bg-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.bg-img {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+}
+
+.ken-burns {
+    animation: kenburns 40s linear infinite alternate;
+}
+
+@keyframes kenburns {
+    from {
+        transform: scale(1);
+    }
+
+    to {
+        transform: scale(1.1);
+    }
+}
+
+.drift-slow {
+    animation: drift 30s linear infinite alternate;
+}
+
+@keyframes drift {
+    from {
+        transform: scale(1.05) translate(-1%, -1%);
+    }
+
+    to {
+        transform: scale(1.1) translate(1%, 1%);
+    }
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.3) 100%);
+}
+
+/* MESH BACKGROUND */
+.mesh-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+        radial-gradient(circle at 10% 10%, var(--accent-soft) 0%, transparent 40%),
+        radial-gradient(circle at 90% 90%, var(--accent-soft) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, var(--bg) 100%);
+}
+
+/* KINETIC PLAYGROUND */
+.kinetic-playground {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.k-blob {
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    filter: blur(80px);
+    border-radius: 50%;
+    opacity: 0.3;
+}
+
+.k-blob-0 {
+    top: 10%;
+    left: 10%;
+}
+
+.k-blob-1 {
+    top: 60%;
+    left: 70%;
+}
+
+.k-blob-2 {
+    top: 30%;
+    left: 50%;
+}
+
+/* BENTO GRID (Apple Keynote Style) */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 300px);
+    gap: 1.5rem;
+    max-width: 1200px;
+}
+
+.bento-card {
+    border-radius: 2rem;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.bento-wide {
+    grid-column: span 2;
+}
+
+.bento-tall {
+    grid-row: span 2;
+}
+
+/* KINETIC TYPOGRAPHY (Apple Stagger) */
+.kinetic-text {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em;
+}
+
+.kinetic-word {
+    display: inline-block;
+}
+
+/* EDITORIAL */
+.editorial-header {
+    border-top: 1px solid var(--fg);
+    padding-top: 1rem;
+    margin-bottom: 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.editorial-label {
+    font-family: var(--f-head);
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-size: 0.7rem;
+}
+
+/* BLEED-OUT ELEMENTS */
+.bleed-element {
+    position: absolute;
+    right: -10vw;
+    top: 20%;
+    font-size: 30vw;
+    font-weight: 900;
+    opacity: 0.03;
+    user-select: none;
+    pointer-events: none;
+    line-height: 0.8;
+    transform: rotate(-5deg);
+}
+
+/* DATA CALLOUT BOX (Deliberate Tension) */
+.data-callout {
+    background: var(--accent);
+    color: #000;
+    padding: 2rem;
+    border-radius: 12px;
+    transform: rotate(-1.5deg) translate(20px, -20px);
+    box-shadow: 20px 20px 0px rgba(0, 0, 0, 0.3);
+    font-family: var(--f-head);
+    font-weight: 800;
+}
+
+/* TEXT KNOCKOUT (Magazine Spread) */
+.knockout-text {
+    mix-blend-mode: exclusion;
+    color: #fff;
+    filter: invert(1);
+}
+
+/* LIST SYSTEMS & BREATHING */
+.editorial-list {
+    display: grid;
+    gap: 4rem;
+    margin-top: 5rem;
+}
+
+.columns-2 {
+    grid-template-columns: 1fr 1fr;
+    gap: 8rem;
+}
+
+.editorial-list li {
+    font-size: 1.4rem;
+    opacity: 0.9;
+    line-height: 1.4;
+    max-width: 40ch;
+    /* Line length control */
+}
+
+.editorial-list li span {
+    display: block;
+}
+
+/* CHART COMPONENT */
+.chart-layout {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 5rem;
+    align-items: center;
+    text-align: left;
+}
+
+.chart-box {
+    padding: 4rem;
+    background: rgba(255, 255, 255, 0.01);
+    border-radius: 3rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.svg-chart-engine {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+/* OBJECTIVE LAYOUT */
+.obj-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    margin-top: 4rem;
+    text-align: left;
+}
+
+.obj-card {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 3rem;
+    border-radius: 2rem;
+    border-left: 8px solid var(--accent);
+}
+
+.obj-id {
+    font-family: var(--f-head);
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: var(--accent);
+    opacity: 0.6;
+    min-width: 100px;
+}
+
+.obj-body h4 {
+    font-family: var(--f-head);
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+/* KPI STATS */
+.stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 5rem;
+    margin-top: 5rem;
+}
+
+.stat-card {
+    border-left: 3px solid var(--accent);
+    padding-left: 3.5rem;
+    text-align: left;
+}
+
+.stat-val {
+    font-size: clamp(4rem, 8vw, 7rem);
+    color: var(--accent);
+    line-height: 1;
+    font-weight: 900;
+    margin-bottom: 1.5rem;
+    font-family: var(--f-head);
+}
+
+.stat-lbl {
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    opacity: 0.5;
+    font-weight: 700;
+}
+
+/* QUOTES & CTA */
+blockquote {
+    font-family: var(--f-head);
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 1.2;
+    font-style: italic;
+    margin-bottom: 3rem;
+    font-weight: 600;
+}
+
+cite {
+    font-size: 1.4rem;
+    letter-spacing: 0.2em;
+    opacity: 0.5;
+    text-transform: uppercase;
+    font-style: normal;
+    font-weight: 800;
+    display: block;
+    border-left: 4px solid var(--accent);
+    padding-left: 2rem;
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+}
+
+.btn-diamond {
+    display: inline-block;
+    padding: 2rem 6rem;
+    background: #fff;
+    color: #000;
+    font-size: 1.8rem;
+    font-weight: 900;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+    transition: all 0.5s;
+    cursor: pointer;
+}
+
+.btn-diamond:hover {
+    transform: translateY(-15px) scale(1.05);
+    box-shadow: 0 60px 120px rgba(0, 0, 0, 0.6);
+}
+
+/* STRATEGIC COLUMNS */
+.col-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4rem;
+    margin-top: 4rem;
+    text-align: left;
+}
+
+.col-item {
+    border-top: 1px solid var(--accent);
+    padding-top: 2rem;
+}
+
+.col-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    letter-spacing: 0.2em;
+}
+
+.col-item h3 {
+    font-family: var(--f-head);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* SPLIT SPREAD */
+.slide--split {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    padding: 0;
+    align-items: stretch;
+}
+
+.split-text {
+    display: flex;
+    align-items: center;
+    padding: 10vw;
+    position: relative;
+    z-index: 10;
+}
+
+.split-photo {
+    position: relative;
+    overflow: hidden;
+}
+
+.photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, var(--bg), transparent);
+    z-index: 2;
+}
+
+/* ARCHITECTURAL ACCENTS */
+.vertical-title {
+    position: absolute;
+    left: 4rem;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    font-family: var(--f-head);
+    font-size: 8rem;
+    opacity: 0.05;
+    pointer-events: none;
+    letter-spacing: 0.5em;
+    white-space: nowrap;
+    z-index: 0;
+}
+
+.vertical-tag {
+    position: absolute;
+    left: 2rem;
+    bottom: 4rem;
+    transform: rotate(-90deg);
+    transform-origin: left bottom;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.4em;
+    opacity: 0.5;
+    text-transform: uppercase;
+    z-index: 10;
+}
+
+.vertical-tag.right {
+    left: auto;
+    right: 2rem;
+    transform: rotate(90deg);
+    transform-origin: right bottom;
+}
